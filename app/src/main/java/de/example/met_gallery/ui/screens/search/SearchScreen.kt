@@ -1,7 +1,6 @@
 package de.example.met_gallery.ui.screens.search
 
 import android.annotation.SuppressLint
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -31,11 +30,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImage
-import coil.request.ImageRequest
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -48,14 +43,10 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
-import coil.compose.AsyncImagePainter
 import de.example.met_gallery.model.Artwork
 import de.example.met_gallery.model.ObjectList
 import de.example.met_gallery.ui.screens.detail.DisplayArtworkImage
-import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -81,7 +72,7 @@ fun SearchScreen(
                         onSearch = { active = false },
                         expanded = active,
                         onExpandedChange = { active = it },
-                        placeholder = { Text("Search") },
+                        placeholder = { Text("Search keywords") },
                         leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
                     )
                 },
@@ -100,7 +91,11 @@ fun SearchScreen(
                 contentPadding = contentPadding,
                 modifier = modifier
                     .fillMaxSize()
-                    .padding(innerPadding),
+                    .padding(
+                        PaddingValues(
+                            top = innerPadding.calculateTopPadding() / 1.3f,
+                            bottom = 0.dp,
+                        )),
                 navController = navController,
             )
             is ObjectListUiState.Error -> ErrorScreen(retryAction, modifier = modifier.fillMaxSize())
@@ -160,13 +155,12 @@ fun ArtworkGrid(
 ) {
     val artworks by searchViewModel.artworks.collectAsState()
     val gridState = rememberLazyGridState()
-    // val counter by remember { mutableStateOf(0) }
 
     LazyVerticalGrid(
         columns = GridCells.Adaptive(125.dp),
-        modifier = modifier.padding(horizontal = 4.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp), // Example horizontal spacing
-        verticalArrangement = Arrangement.spacedBy(8.dp),   // Example vertical spacing
+        modifier = modifier,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
         contentPadding = contentPadding,
     ) {
         items(objectList.objectIDs.size) { index ->

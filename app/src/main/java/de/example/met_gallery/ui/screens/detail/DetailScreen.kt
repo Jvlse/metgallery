@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -89,9 +90,9 @@ fun ArtworkScreen(
             ) {
                 Box(
                     modifier = Modifier
-                        .height(500.dp)
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(16.dp))
+                        .heightIn(max = 500.dp)
+                        .verticalScroll(rememberScrollState())
                 ) {
                     DisplayArtworkImage(artwork)
                 }
@@ -139,6 +140,7 @@ fun ArtworkDetail(artwork: Artwork) {
         if (artwork.objectUrl.isNotBlank()) {
             Spacer(modifier = Modifier.height(8.dp))
             Column (
+                modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Button(
@@ -154,34 +156,38 @@ fun ArtworkDetail(artwork: Artwork) {
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(300.dp)
-                .horizontalScroll(rememberScrollState())
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // Show images if URLs are not blank
-            (listOf(
-                artwork.primaryImage,
-            ) + artwork.additionalImages).filter { it.isNotBlank() }.forEach { url ->
-                Card(
-                    modifier = Modifier
-                        .fillMaxSize(),
-                    shape = MaterialTheme.shapes.large,
-                    elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+        PrintAdditionalImages(artwork = artwork)
+    }
+}
+
+@Composable
+fun PrintAdditionalImages(artwork: Artwork) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(300.dp)
+            .horizontalScroll(rememberScrollState()),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // Show images if URLs are not blank
+        (listOf(
+            artwork.primaryImage,
+        ) + artwork.additionalImages).filter { it.isNotBlank() }.forEach { url ->
+            Card(
+                modifier = Modifier
+                    .fillMaxSize(),
+                shape = MaterialTheme.shapes.large,
+                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+            ) {
+                Surface (
+                    onClick = { /* TODO Open Image Fullscreen */ }
                 ) {
-                    Surface (
-                        onClick = { /* TODO Open Image Fullscreen */ }
-                    ) {
-                        AsyncImage(
-                            model = url,
-                            contentDescription = "Image",
-                            modifier = Modifier.fillMaxSize()
-                        )
-                    }
+                    AsyncImage(
+                        model = url,
+                        contentDescription = "Image",
+                        modifier = Modifier.fillMaxSize()
+                    )
                 }
             }
         }
