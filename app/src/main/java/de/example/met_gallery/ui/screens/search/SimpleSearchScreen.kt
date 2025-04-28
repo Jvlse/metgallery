@@ -81,7 +81,6 @@ fun SimpleSearchScreen(
             )
             is ObjectListUiState.Error -> ErrorScreen(retryAction, modifier = modifier.fillMaxSize())
         }
-        Log.d("AAA","$objectListUiState")
     }
 }
 

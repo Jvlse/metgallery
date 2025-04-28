@@ -48,9 +48,14 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
+import coil.compose.AsyncImagePainter
 import de.example.met_gallery.model.Artwork
 import de.example.met_gallery.model.ObjectList
+import de.example.met_gallery.ui.screens.detail.DisplayArtworkImage
+import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -100,7 +105,6 @@ fun SearchScreen(
             )
             is ObjectListUiState.Error -> ErrorScreen(retryAction, modifier = modifier.fillMaxSize())
         }
-        Log.d("AAA","$objectListUiState")
     }
 }
 
@@ -256,7 +260,6 @@ fun ArtworkCardState(
         /*
 
     val artwork = artworks.firstOrNull() { it?.id == objectList.objectIDs[index] }
-    Log.d("AAA","total Artworks $artwork")
     Box (
         modifier = Modifier
             .height(200.dp)
@@ -309,16 +312,7 @@ fun ArtworkCard(
             Surface (
                 onClick = { navController.navigate("detail/${artwork.id}/$index") },
             ) {
-                AsyncImage(
-                    model = ImageRequest.Builder(context = LocalContext.current)
-                        .data(if (artwork.primaryImageSmall.isNotBlank()) artwork.primaryImageSmall
-                        else artwork.primaryImage)
-                        .crossfade(true).build(),
-                    error = null, //painterResource(R.drawable.ic_broken_image),
-                    contentDescription = artwork.title,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxWidth()
-                )
+                DisplayArtworkImage(artwork = artwork, large = false)
             }
         }
     }

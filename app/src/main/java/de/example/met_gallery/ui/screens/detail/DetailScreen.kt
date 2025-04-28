@@ -2,9 +2,13 @@ package de.example.met_gallery.ui.screens.detail
 
 import android.annotation.SuppressLint
 import android.content.Intent
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -61,7 +65,7 @@ fun DetailScreen(
                 }
             )
         },
-    ){ innerPadding ->
+    ) { innerPadding ->
         ArtworkScreen(artwork = detailViewModel.artwork.value!!, modifier = Modifier.padding(innerPadding))
     }
 }
@@ -100,40 +104,21 @@ fun ArtworkScreen(
 }
 
 @Composable
-fun DisplayArtworkImage(artwork: Artwork) {
-    if(artwork.primaryImage.isNotBlank()) {
-        AsyncImage(
-            model = ImageRequest.Builder(context = LocalContext.current)
-                .data(artwork.primaryImage)
-                .crossfade(true).build(),
-            error = null, //painterResource(R.drawable.ic_broken_image),
-            placeholder = null, //painterResource(R.drawable.loading_img),
-            contentDescription = artwork.title,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxWidth()
-        )
-    } else {
-        AsyncImage(
-            model = ImageRequest.Builder(context = LocalContext.current)
-                .data(artwork.primaryImageSmall)
-                .crossfade(true).build(),
-            error = null, //painterResource(R.drawable.ic_broken_image),
-            placeholder = null, //painterResource(R.drawable.loading_img),
-            contentDescription = artwork.title,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxWidth()
-        )
-    }
+fun DisplayArtworkImage(artwork: Artwork, large: Boolean = true) {
+    AsyncImage(
+        model = ImageRequest.Builder(context = LocalContext.current)
+            .data( if (artwork.primaryImage.isNotBlank()
+                && (large || artwork.primaryImageSmall.isBlank())) artwork.primaryImage
+            else artwork.primaryImageSmall)
+            .crossfade(true).build(),
+        contentDescription = artwork.title,
+        contentScale = ContentScale.Crop,
+        modifier = Modifier.fillMaxWidth()
+    )
 }
 
 @Composable
 fun ArtworkDetail(artwork: Artwork) {
-    val imageModifier = Modifier
-        .fillMaxWidth()
-        .heightIn(max = 300.dp)
-        .clip(RoundedCornerShape(12.dp))
-        .padding(vertical = 8.dp)
-
     Column(modifier = Modifier.padding(16.dp)) {
         Text(
             buildAnnotatedString {
@@ -169,27 +154,37 @@ fun ArtworkDetail(artwork: Artwork) {
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Show images if URLs are not blank
-        listOf(
-            artwork.primaryImage,
-            artwork.primaryImageSmall
-        ).filter { it.isNotBlank() }.forEach { url ->
-            AsyncImage(
-                model = url,
-                contentDescription = null,
-                modifier = imageModifier
-            )
-        }
-
-        artwork.additionalImages
-            .filter { it.isNotBlank() }
-            .forEach { url ->
-                AsyncImage(
-                    model = url,
-                    contentDescription = null,
-                    modifier = imageModifier
-                )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(300.dp)
+                .horizontalScroll(rememberScrollState())
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Show images if URLs are not blank
+            (listOf(
+                artwork.primaryImage,
+            ) + artwork.additionalImages).filter { it.isNotBlank() }.forEach { url ->
+                Card(
+                    modifier = Modifier
+                        .fillMaxSize(),
+                    shape = MaterialTheme.shapes.large,
+                    elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+                ) {
+                    Surface (
+                        onClick = { /* TODO Open Image Fullscreen */ }
+                    ) {
+                        AsyncImage(
+                            model = url,
+                            contentDescription = "Image",
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
+                }
             }
+        }
     }
 }
 
