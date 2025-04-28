@@ -40,21 +40,21 @@ android {
 }
 
 dependencies {
-    implementation("androidx.paging:paging-runtime:3.2.1")
-    implementation("androidx.paging:paging-compose:3.2.1")
+    implementation(libs.androidx.paging.runtime)
+    implementation(libs.androidx.paging.compose)
 
     implementation(libs.navigation)
     // Moshi
-    implementation("com.squareup.moshi:moshi-kotlin:1.14.0")
+    implementation(libs.moshi.kotlin)
     // Koin
     implementation(libs.koin.android)
     implementation(libs.koin.compose)
     // Retrofit
     implementation(libs.retrofit.core)
     implementation(libs.retrofit.moshiConverter)
-    implementation("com.jakewharton.retrofit:retrofit2-kotlinx-serialization-converter:1.0.0")
-    implementation("io.coil-kt:coil-compose:2.7.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0")
+    implementation(libs.retrofit2.kotlinx.serialization.converter)
+    implementation(libs.coil.compose)
+    implementation(libs.kotlinx.serialization.json)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
