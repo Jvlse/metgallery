@@ -1,0 +1,38 @@
+package de.example.met_gallery.network
+
+import de.example.met_gallery.model.Artwork
+import de.example.met_gallery.model.ObjectList
+
+interface ArtworkDataSource {
+    suspend fun getArtworks(): ObjectList
+    suspend fun getArtworkById(id: Int): Artwork?
+}
+
+class ArtworkDataSourceImpl (private val api: ArtworkApi) : ArtworkDataSource {
+    override suspend fun getArtworks(): ObjectList {
+        val response = api.getArtworks()
+        val responseBody = response.body()
+
+        val artworks = if (response.isSuccessful && responseBody != null) {
+            responseBody
+        } else {
+            throw Exception("Request failed")
+        }
+
+        return artworks
+    }
+
+    override suspend fun getArtworkById(id: Int): Artwork? {
+        val response = api.getArtworkById(id)
+        val responseBody = response.body()
+
+        val artwork = if (response.isSuccessful && responseBody != null) {
+            responseBody
+        } else {
+            //throw Exception("Artwork not found")
+            return null
+        }
+
+        return artwork
+    }
+}
