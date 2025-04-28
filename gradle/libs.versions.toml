@@ -1,18 +1,18 @@
 [versions]
-agp = "8.9.1"
-kotlin = "2.0.21"
+agp = "8.9.2"
+kotlin = "2.1.20"
 coreKtx = "1.16.0"
 junit = "4.13.2"
 junitVersion = "1.2.1"
 espressoCore = "3.6.1"
 lifecycleRuntimeKtx = "2.8.7"
 activityCompose = "1.10.1"
-composeBom = "2024.09.00"
+composeBom = "2025.04.01"
 
 retrofit = "2.11.0"
-navigation = "2.8.4"
-moshi = "1.15.1"
-kotlinxSerialization = "1.7.3"
+navigation = "2.8.9"
+moshi = "1.15.2"
+kotlinxSerialization = "1.8.0"
 koin = "4.0.0"
 
 [libraries]
@@ -33,17 +33,11 @@ androidx-material3 = { group = "androidx.compose.material3", name = "material3" 
 
 navigation = { module = "androidx.navigation:navigation-compose", version.ref = "navigation" }
 
-kotlinx-serialization-core = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core", version.ref = "kotlinxSerialization" }
-
 koin-android = { group = "io.insert-koin", name = "koin-android", version.ref = "koin" }
 koin-compose = { group = "io.insert-koin", name = "koin-androidx-compose", version.ref = "koin" }
 
 retrofit-core = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
 retrofit-moshiConverter = { module = "com.squareup.retrofit2:converter-moshi", version.ref = "retrofit" }
-
-moshi-core = { module = "com.squareup.moshi:moshi", version.ref = "moshi" }
-moshi-adapters = { module = "com.squareup.moshi:moshi-adapters", version.ref = "moshi" }
-moshi-annotationProcessor = { module = "com.squareup.moshi:moshi-kotlin-codegen", version.ref = "moshi" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

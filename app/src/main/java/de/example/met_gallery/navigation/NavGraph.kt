@@ -34,18 +34,9 @@ fun AppNavigation(modifier: Modifier = Modifier) {
                 searchViewModel = searchViewModel,
                 objectListUiState = searchViewModel.objectListUiState,
                 artworkUiState = searchViewModel.artworkUiStateList,
-                contentPadding = PaddingValues(0.dp),
                 navController = navController,
                 modifier = modifier,
-            )
-        }
-        composable("simpleSearch") {
-            SimpleSearchScreen(
-                searchViewModel = searchViewModel,
-                objectListUiState = searchViewModel.objectListUiState,
                 contentPadding = PaddingValues(0.dp),
-                navController = navController,
-                modifier = modifier,
             )
         }
         composable(
@@ -61,9 +52,18 @@ fun AppNavigation(modifier: Modifier = Modifier) {
                 DetailScreen(
                     detailViewModel = detailViewModel,
                     navController = navController,
-                    modifier = modifier,
                 )
             }
+        }
+
+        composable("simpleSearch") {
+            SimpleSearchScreen(
+                searchViewModel = searchViewModel,
+                objectListUiState = searchViewModel.objectListUiState,
+                contentPadding = PaddingValues(0.dp),
+                navController = navController,
+                modifier = modifier,
+            )
         }
         composable(
             route = "simpleDetail/{objectId}/{index}",

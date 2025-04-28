@@ -40,11 +40,11 @@ import coil.request.ImageRequest
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.draw.clip
 import androidx.navigation.NavController
@@ -58,10 +58,10 @@ fun SearchScreen(
     searchViewModel: SearchViewModel,
     objectListUiState: ObjectListUiState,
     artworkUiState: StateFlow<List<ArtworkUiState>>,
-    retryAction: () -> Unit = { searchViewModel.getObjectIds() },
-    contentPadding: PaddingValues = PaddingValues(0.dp),
     navController: NavController,
     modifier: Modifier = Modifier,
+    retryAction: () -> Unit = { searchViewModel.getObjectIds() },
+    contentPadding: PaddingValues = PaddingValues(0.dp),
 ) {
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
     Scaffold (
@@ -86,11 +86,10 @@ fun SearchScreen(
         },
     ) { innerPadding ->
         when (objectListUiState) {
-            is ObjectListUiState.Loading -> LoadingScreen(modifier = modifier.fillMaxSize())
+            is ObjectListUiState.Loading -> LoadingScreen(navController)
             is ObjectListUiState.Success -> ArtworkGrid(
                 searchViewModel,
                 objectListUiState.objects,
-                artworkUiState = artworkUiState,
                 contentPadding = contentPadding,
                 modifier = modifier
                     .fillMaxWidth()
@@ -103,14 +102,30 @@ fun SearchScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LoadingScreen(modifier: Modifier = Modifier) {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        CircularProgressIndicator()
+fun LoadingScreen(navController: NavController) {
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
+    Scaffold (
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = { Text("Details") },
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    }
+                }
+            )
+        },
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier.fillMaxSize().padding(innerPadding),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            CircularProgressIndicator()
+        }
     }
 }
 
@@ -132,7 +147,7 @@ fun ErrorScreen(retryAction: () -> Unit, modifier: Modifier = Modifier) {
 fun ArtworkGrid(
     searchViewModel: SearchViewModel,
     objectList: ObjectList,
-    artworkUiState: StateFlow<List<ArtworkUiState>>,
+    // artworkUiState: StateFlow<List<ArtworkUiState>>,
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(0.dp),
     navController: NavController,
@@ -164,6 +179,7 @@ fun ArtworkGrid(
                 } else {
                     LaunchedEffect(
                         remember { derivedStateOf { gridState } },
+                        remember { derivedStateOf { searchViewModel.artworks } },
                         /*remember { derivedStateOf {
                             if (index + 1 in artworkUiState.value.indices) {
                                 artworkUiState.value[index+1]

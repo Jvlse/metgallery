@@ -1,6 +1,5 @@
 package de.example.met_gallery.ui.screens.search
 
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -18,7 +17,6 @@ import kotlinx.coroutines.launch
 import okio.IOException
 import kotlin.collections.firstOrNull
 import java.lang.Exception
-import kotlin.plus
 
 sealed interface ObjectListUiState {
     data class Success(

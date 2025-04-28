@@ -2,8 +2,11 @@ package de.example.met_gallery.ui.screens.search
 
 import android.annotation.SuppressLint
 import android.util.Log
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -30,6 +33,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Surface
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.navigation.NavController
 import de.example.met_gallery.model.ObjectList
@@ -39,10 +43,10 @@ import de.example.met_gallery.model.ObjectList
 fun SimpleSearchScreen(
     searchViewModel: SearchViewModel,
     objectListUiState: ObjectListUiState,
-    retryAction: () -> Unit = { searchViewModel.getObjectIds() },
-    contentPadding: PaddingValues = PaddingValues(0.dp),
     navController: NavController,
     modifier: Modifier = Modifier,
+    contentPadding: PaddingValues = PaddingValues(0.dp),
+    retryAction: () -> Unit = { searchViewModel.getObjectIds() },
 ) {
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
     Scaffold (
@@ -67,7 +71,7 @@ fun SimpleSearchScreen(
         },
     ) { innerPadding ->
         when (objectListUiState) {
-            is ObjectListUiState.Loading -> LoadingScreen(modifier = modifier.fillMaxSize())
+            is ObjectListUiState.Loading -> LoadingScreen(navController)
             is ObjectListUiState.Success -> SimpleArtworkGrid(
                 objectList = objectListUiState.objects,
                 contentPadding = contentPadding,
@@ -92,18 +96,16 @@ fun SimpleArtworkGrid(
     LazyVerticalGrid(
         columns = GridCells.Adaptive(75.dp),
         modifier = modifier.padding(horizontal = 4.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp), // Example horizontal spacing
+        verticalArrangement = Arrangement.spacedBy(8.dp),   // Example vertical spacing
         contentPadding = contentPadding,
     ) {
         items(objectList.objectIDs) { id ->
-            Box (
-                modifier = Modifier
-                    .height(200.dp)
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(16.dp))
+            Surface (
+                onClick = { navController.navigate("simpleDetail/${id}/${0}") }
             ) {
                 SimpleArtworkCard(
                     id = id,
-                    navController = navController
                 )
             }
         }
@@ -114,10 +116,8 @@ fun SimpleArtworkGrid(
 @Composable
 fun SimpleArtworkCard(
     id: Int,
-    navController: NavController,
     modifier: Modifier = Modifier,
 ) {
-    Log.d("AAA","total Artworks $id")
     Box (
         modifier = Modifier
             .height(50.dp)
@@ -125,16 +125,17 @@ fun SimpleArtworkCard(
             .clip(RoundedCornerShape(16.dp))
     ) {
         Card(
-            modifier = modifier,
+            modifier = modifier.fillMaxSize(),
             shape = MaterialTheme.shapes.small,
             elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
         ) {
-            Surface (
-                onClick = { navController.navigate("simpleDetail/${id}") }
+            Row(
+                modifier = modifier.fillMaxSize(),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Text("$id")
             }
         }
     }
-        Log.d("AAA","$id")
 }

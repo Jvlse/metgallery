@@ -42,8 +42,6 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import de.example.met_gallery.model.Artwork
 import androidx.core.net.toUri
-import de.example.met_gallery.ui.screens.search.SearchViewModel
-import org.koin.androidx.compose.koinViewModel
 
 @SuppressLint("StateFlowValueCalledInComposition")
 @OptIn(ExperimentalMaterial3Api::class)
@@ -51,14 +49,13 @@ import org.koin.androidx.compose.koinViewModel
 fun DetailScreen(
     detailViewModel: DetailViewModel,
     navController: NavController,
-    modifier: Modifier = Modifier,
 ) {
     Scaffold (
         topBar = {
             CenterAlignedTopAppBar(
                 title = { Text("Details") },
                 navigationIcon = {
-                    IconButton(onClick = { navController.navigate("search") }) {
+                    IconButton(onClick = { navController.navigateUp() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 }
@@ -73,7 +70,6 @@ fun DetailScreen(
 fun ArtworkScreen(
     artwork: Artwork,
     modifier: Modifier = Modifier,
-    contentPadding: PaddingValues = PaddingValues(0.dp),
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,

@@ -9,18 +9,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-sealed interface DetailUiState {
-    data class Success(
-        val artwork: Artwork?
-    ) : DetailUiState
-    object Error : DetailUiState
-    object Loading : DetailUiState
-}
-
 class DetailViewModel(
 ) : ViewModel() {
-    var detailUiState: DetailUiState by mutableStateOf(DetailUiState.Loading)
-        private set
 
     private val _artwork: MutableStateFlow<Artwork?> = MutableStateFlow(null)
     val artwork: StateFlow<Artwork?> = _artwork.asStateFlow()
