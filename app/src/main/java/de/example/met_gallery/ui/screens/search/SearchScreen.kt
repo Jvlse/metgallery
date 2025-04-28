@@ -6,6 +6,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -41,48 +42,54 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.SearchBar
+import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.traversalIndex
 import androidx.navigation.NavController
 import de.example.met_gallery.model.Artwork
 import de.example.met_gallery.model.ObjectList
-import kotlinx.coroutines.flow.StateFlow
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchScreen(
     searchViewModel: SearchViewModel,
     objectListUiState: ObjectListUiState,
-    artworkUiState: StateFlow<List<ArtworkUiState>>,
+    // artworkUiState: StateFlow<List<ArtworkUiState>>,
     navController: NavController,
     modifier: Modifier = Modifier,
     retryAction: () -> Unit = { searchViewModel.getObjectIds() },
     contentPadding: PaddingValues = PaddingValues(0.dp),
 ) {
-    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
+    var text = ""
+    var active = false
     Scaffold (
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            CenterAlignedTopAppBar(
-                title = {
-                    Text("Search")
+            SearchBar(
+                modifier = Modifier.padding(horizontal = 8.dp).fillMaxWidth(),
+                inputField = {
+                    SearchBarDefaults.InputField(
+                        query = text,
+                        onQueryChange = { text = it },
+                        onSearch = { active = false },
+                        expanded = active,
+                        onExpandedChange = { active = it },
+                        placeholder = { Text("Search") },
+                        leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                    )
                 },
-                actions = {
-                    IconButton(
-                        onClick = { /* do something */ }
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.Search,
-                            contentDescription = "Search Icon"
-                        )
-                    }
-                },
-                scrollBehavior = scrollBehavior,
-            )
+                expanded = active,
+                onExpandedChange = { active = it },
+            ) {
+
+            }
         },
     ) { innerPadding ->
         when (objectListUiState) {
@@ -92,7 +99,7 @@ fun SearchScreen(
                 objectListUiState.objects,
                 contentPadding = contentPadding,
                 modifier = modifier
-                    .fillMaxWidth()
+                    .fillMaxSize()
                     .padding(innerPadding),
                 navController = navController,
             )
@@ -159,6 +166,8 @@ fun ArtworkGrid(
     LazyVerticalGrid(
         columns = GridCells.Adaptive(125.dp),
         modifier = modifier.padding(horizontal = 4.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp), // Example horizontal spacing
+        verticalArrangement = Arrangement.spacedBy(8.dp),   // Example vertical spacing
         contentPadding = contentPadding,
     ) {
         items(objectList.objectIDs.size) { index ->
@@ -188,10 +197,10 @@ fun ArtworkGrid(
                             }
                         } }*/
                     ) {
-                        if(searchViewModel.getArtworkById(objectList.objectIDs[index], index) == null) {
+                        searchViewModel.getArtworkById(objectList.objectIDs[index], index) // == null) {
                             // counter increase und index+counter = neuer index
                             // Problem: kann nicht zwischen nicht geholtem und null Artwork unterscheiden
-                        }
+
                     }
                 }
             }
@@ -320,16 +329,16 @@ fun ArtworkCard(
     }
 }
 
-@Composable
-fun LoadingCard() {
-    Row (
-        horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .height(200.dp)
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-    ) {
-        CircularProgressIndicator()
-    }
-}
+//@Composable
+//fun LoadingCard() {
+//    Row (
+//        horizontalArrangement = Arrangement.Center,
+//        verticalAlignment = Alignment.CenterVertically,
+//        modifier = Modifier
+//            .height(200.dp)
+//            .fillMaxWidth()
+//            .clip(RoundedCornerShape(16.dp))
+//    ) {
+//        CircularProgressIndicator()
+//    }
+//}

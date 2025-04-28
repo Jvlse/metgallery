@@ -33,7 +33,6 @@ fun AppNavigation(modifier: Modifier = Modifier) {
             SearchScreen(
                 searchViewModel = searchViewModel,
                 objectListUiState = searchViewModel.objectListUiState,
-                artworkUiState = searchViewModel.artworkUiStateList,
                 navController = navController,
                 modifier = modifier,
                 contentPadding = PaddingValues(0.dp),
@@ -73,7 +72,7 @@ fun AppNavigation(modifier: Modifier = Modifier) {
             )
         ) { backStackEntry ->
             val objectId = backStackEntry.arguments?.getInt("objectId") ?: 0
-            val artwork = searchViewModel.getArtworkById(objectId, 0)
+            searchViewModel.getArtworkById(objectId, 0)
             SimpleDetailScreen(
                 detailViewModel = detailViewModel,
                 searchViewModel = searchViewModel,

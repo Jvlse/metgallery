@@ -11,8 +11,6 @@ composeBom = "2025.04.01"
 
 retrofit = "2.11.0"
 navigation = "2.8.9"
-moshi = "1.15.2"
-kotlinxSerialization = "1.8.0"
 koin = "4.0.0"
 
 [libraries]

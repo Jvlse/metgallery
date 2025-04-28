@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -48,6 +47,7 @@ import androidx.core.net.toUri
 @Composable
 fun DetailScreen(
     detailViewModel: DetailViewModel,
+    onLeave: () -> Unit = { detailViewModel.leaveDetailScreen() },
     navController: NavController,
 ) {
     Scaffold (
@@ -55,7 +55,7 @@ fun DetailScreen(
             CenterAlignedTopAppBar(
                 title = { Text("Details") },
                 navigationIcon = {
-                    IconButton(onClick = { navController.navigateUp() }) {
+                    IconButton(onClick = { navController.navigateUp(); onLeave }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 }

@@ -26,7 +26,6 @@ fun SimpleDetailScreen(
             detailViewModel = detailViewModel,
             searchViewModel = searchViewModel,
             navController = navController,
-            modifier = modifier,
         )
         is ArtworkUiState.Error -> ErrorScreen({}, modifier = modifier.fillMaxSize())
     }
@@ -38,7 +37,6 @@ fun SimpleArtworkScreen(
     detailViewModel: DetailViewModel,
     searchViewModel: SearchViewModel,
     navController: NavController,
-    modifier: Modifier = Modifier,
 ) {
     detailViewModel.setArtwork((searchViewModel.artworkUiStateList.value[0] as ArtworkUiState.Success).artwork!!)
     DetailScreen(

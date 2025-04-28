@@ -1,8 +1,5 @@
 package de.example.met_gallery.ui.screens.detail
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import de.example.met_gallery.model.Artwork
 import kotlinx.coroutines.flow.MutableStateFlow
