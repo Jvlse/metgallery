@@ -1,6 +1,7 @@
 package de.example.met_gallery.ui.screens.search
 
 import android.annotation.SuppressLint
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -41,7 +42,9 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.draw.clip
 import androidx.navigation.NavController
 import de.example.met_gallery.model.Artwork
@@ -59,7 +62,7 @@ fun SearchScreen(
     retryAction: () -> Unit = { searchViewModel.getObjectIds() },
     contentPadding: PaddingValues = PaddingValues(0.dp),
 ) {
-    var text = ""
+    var text by remember { mutableStateOf("")}
     var active = false
     Scaffold (
         topBar = {
@@ -69,10 +72,10 @@ fun SearchScreen(
                     SearchBarDefaults.InputField(
                         query = text,
                         onQueryChange = { text = it },
-                        onSearch = { active = false },
+                        onSearch = { active = false; searchViewModel.searchArtworks(text) },
                         expanded = active,
                         onExpandedChange = { active = it },
-                        placeholder = { Text("Search keywords") },
+                        placeholder = { Text("Search keyword") },
                         leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
                     )
                 },

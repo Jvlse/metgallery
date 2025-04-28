@@ -73,6 +73,21 @@ class SearchViewModel(
         }
     }
 
+    fun searchArtworks(query: String) {
+        viewModelScope.launch {
+            objectListUiState = ObjectListUiState.Loading
+            objectListUiState = try {
+                ObjectListUiState.Success(
+                    artworkRepository.searchArtworks(query)
+                )
+            } catch (e: IOException) {
+                ObjectListUiState.Error(e)
+            } catch (e: HttpException) {
+                ObjectListUiState.Error(e)
+            }
+        }
+    }
+
     fun getArtworkById(id: Int, index: Int) : Artwork? {
         // already fetched
         if (_artworks.value.firstOrNull() { it?.id == id } != null) return null
