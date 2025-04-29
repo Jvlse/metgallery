@@ -1,5 +1,6 @@
 package de.example.met_gallery.ui.screens.search
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -15,7 +16,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import okio.IOException
-import kotlin.collections.firstOrNull
 import java.lang.Exception
 
 sealed interface ObjectListUiState {
@@ -47,8 +47,10 @@ class SearchViewModel(
     private val _artworkUiStateList = MutableStateFlow<List<ArtworkUiState>>(listOf(ArtworkUiState.Loading))
     val artworkUiStateList: StateFlow<List<ArtworkUiState>> = _artworkUiStateList.asStateFlow()
 
-    private val _artworks: MutableStateFlow<Set<Artwork?>> = MutableStateFlow(emptySet())
-    val artworks: StateFlow<Set<Artwork?>> = _artworks.asStateFlow()
+    private val _artworks: MutableStateFlow<Set<Artwork>> = MutableStateFlow(emptySet())
+    val artworks: StateFlow<Set<Artwork>> = _artworks.asStateFlow()
+
+    private val _errors: MutableStateFlow<Set<Int>> = MutableStateFlow(emptySet())
 
     init {
         getObjectIds()
@@ -56,7 +58,7 @@ class SearchViewModel(
 
     fun getObjectIds() {
         if(objectListUiState is ObjectListUiState.Success) {
-            //
+            return
         } else {
             viewModelScope.launch {
                 objectListUiState = ObjectListUiState.Loading
@@ -88,11 +90,10 @@ class SearchViewModel(
         }
     }
 
-    fun getArtworkById(id: Int, index: Int) : Artwork? {
+    fun getArtworkById(id: Int, index: Int) {
         // already fetched
-        if (_artworks.value.firstOrNull() { it?.id == id } != null) return null
+        if (getLocalArtwork(id) != null) return
 
-        var artwork : Artwork? = null
         if (objectListUiState is ObjectListUiState.Success) {
             viewModelScope.launch {
                 _artworkUiStateList.update { currentList ->
@@ -104,23 +105,46 @@ class SearchViewModel(
                         currentList // Return the original list if the index is invalid
                     }
                 }
-                artwork = artworkRepository.getArtworkById(id)
-                if(artwork != null && (artwork?.primaryImage != "" || artwork?.primaryImageSmall != "")) {
+                handleResult(id, index)
+            }
+        }
+    }
+
+    fun getLocalArtwork(id: Int): Artwork? {
+        return _artworks.value.firstOrNull { it.id == id }
+    }
+
+    suspend fun handleResult(id: Int, index: Int) {
+        val searchResult = artworkRepository.getArtworkById(id)
+        searchResult.fold(
+            onSuccess = { artwork ->
+                if(artwork.primaryImage.isNotBlank()
+                    || artwork.primaryImageSmall.isNotBlank()) {
                     _artworkUiStateList.update { currentList ->
                         currentList.toMutableList().apply {
                             this[index] = ArtworkUiState.Success(artwork)
                         }
                     }
                     _artworks.value += artwork
+                } else {
+                    removeObjectFromList(id)
                 }
+            },
+            onFailure = {
+                removeObjectFromList(id)
+                _errors.value += id
             }
-        } else {
-            getObjectIds()
-        }
-        return artwork
+        )
     }
 
-    /* ids.map {
-        artworkRepository.getArtworkById(it)
-    },*/
+    // filter ID out of list so that Card doesn't get rendered in UI
+    fun removeObjectFromList(id: Int) {
+        objectListUiState = ObjectListUiState.Success(
+            ObjectList(
+                (objectListUiState as ObjectListUiState.Success).objects.total,
+                (objectListUiState as ObjectListUiState.Success)
+                    .objects.objectIds.filter { it != id }
+            )
+        )
+    }
 }

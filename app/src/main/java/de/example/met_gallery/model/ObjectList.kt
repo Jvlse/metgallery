@@ -1,12 +1,12 @@
 package de.example.met_gallery.model
 
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
+import com.squareup.moshi.Json
+import com.squareup.moshi.JsonClass
 
-@Serializable
+@JsonClass(generateAdapter = true)
 data class ObjectList (
-    @SerialName(value = "total")
+    @Json(name = "total")
     val total: Int, // total number of objects
-    @SerialName(value = "objectIDs")
-    val objectIDs: List<Int>, // eachs objects id
+    @Json(name = "objectIDs")
+    val objectIds: List<Int>, // eachs objects id
 )

@@ -9,6 +9,7 @@ import androidx.navigation.NavController
 import de.example.met_gallery.ui.screens.search.ArtworkUiState
 import de.example.met_gallery.ui.screens.search.ErrorScreen
 import de.example.met_gallery.ui.screens.search.LoadingScreen
+import de.example.met_gallery.ui.screens.search.ObjectListUiState
 import de.example.met_gallery.ui.screens.search.SearchViewModel
 
 @SuppressLint("StateFlowValueCalledInComposition")
@@ -27,7 +28,12 @@ fun SimpleDetailScreen(
             searchViewModel = searchViewModel,
             navController = navController,
         )
-        is ArtworkUiState.Error -> ErrorScreen({}, modifier = modifier.fillMaxSize())
+        is ArtworkUiState.Error -> ErrorScreen(
+            retryAction = { searchViewModel.getArtworkById(
+            (searchViewModel.objectListUiState as ObjectListUiState.Success)
+                .objects.objectIds[0], 0) },
+            modifier = modifier.fillMaxSize()
+        )
     }
 }
 

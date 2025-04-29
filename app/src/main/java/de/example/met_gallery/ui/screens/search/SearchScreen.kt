@@ -1,12 +1,12 @@
 package de.example.met_gallery.ui.screens.search
 
 import android.annotation.SuppressLint
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -46,10 +46,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import de.example.met_gallery.model.Artwork
 import de.example.met_gallery.model.ObjectList
-import de.example.met_gallery.ui.screens.detail.DisplayArtworkImage
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -58,13 +61,15 @@ fun SearchScreen(
     objectListUiState: ObjectListUiState,
     // artworkUiState: StateFlow<List<ArtworkUiState>>,
     navController: NavController,
+    onSuccessState: @Composable (PaddingValues) -> Unit,
     modifier: Modifier = Modifier,
     retryAction: () -> Unit = { searchViewModel.getObjectIds() },
-    contentPadding: PaddingValues = PaddingValues(0.dp),
 ) {
-    var text by remember { mutableStateOf("")}
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
+    var text: String by remember { mutableStateOf("")}
     var active = false
     Scaffold (
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             SearchBar(
                 modifier = Modifier.padding(horizontal = 8.dp).fillMaxWidth(),
@@ -72,7 +77,10 @@ fun SearchScreen(
                     SearchBarDefaults.InputField(
                         query = text,
                         onQueryChange = { text = it },
-                        onSearch = { active = false; searchViewModel.searchArtworks(text) },
+                        onSearch = {
+                            active = false
+                            searchViewModel.searchArtworks(text)
+                                   },
                         expanded = active,
                         onExpandedChange = { active = it },
                         placeholder = { Text("Search keyword") },
@@ -81,27 +89,14 @@ fun SearchScreen(
                 },
                 expanded = active,
                 onExpandedChange = { active = it },
-            ) {
-
-            }
+                content = { }
+            )
         },
     ) { innerPadding ->
         when (objectListUiState) {
             is ObjectListUiState.Loading -> LoadingScreen(navController)
-            is ObjectListUiState.Success -> ArtworkGrid(
-                searchViewModel,
-                objectListUiState.objects,
-                contentPadding = contentPadding,
-                modifier = modifier
-                    .fillMaxSize()
-                    .padding(
-                        PaddingValues(
-                            top = innerPadding.calculateTopPadding() / 1.3f,
-                            bottom = 0.dp,
-                        )),
-                navController = navController,
-            )
-            is ObjectListUiState.Error -> ErrorScreen(retryAction, modifier = modifier.fillMaxSize())
+            is ObjectListUiState.Success -> onSuccessState(innerPadding)
+            is ObjectListUiState.Error -> ErrorScreen(retryAction, modifier.fillMaxSize())
         }
     }
 }
@@ -109,9 +104,7 @@ fun SearchScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoadingScreen(navController: NavController) {
-    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
     Scaffold (
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             CenterAlignedTopAppBar(
                 title = { Text("Details") },
@@ -147,6 +140,7 @@ fun ErrorScreen(retryAction: () -> Unit, modifier: Modifier = Modifier) {
     }
 }
 
+@SuppressLint("StateFlowValueCalledInComposition")
 @Composable
 fun ArtworkGrid(
     searchViewModel: SearchViewModel,
@@ -166,44 +160,10 @@ fun ArtworkGrid(
         verticalArrangement = Arrangement.spacedBy(8.dp),
         contentPadding = contentPadding,
     ) {
-        items(objectList.objectIDs.size) { index ->
-            val artwork = artworks.firstOrNull() { it?.id == objectList.objectIDs[index] }
-            Box (
-                modifier = Modifier
-                    .height(200.dp)
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(16.dp))
-            ) {
-                if(artwork != null) {
-                    ArtworkCardState(
-                        searchViewModel = searchViewModel,
-                        index = index,
-                        artwork = artwork,
-                        navController = navController
-                    )
-                } else {
-                    LaunchedEffect(
-                        remember { derivedStateOf { gridState } },
-                        remember { derivedStateOf { searchViewModel.artworks } },
-                        /*remember { derivedStateOf {
-                            if (index + 1 in artworkUiState.value.indices) {
-                                artworkUiState.value[index+1]
-                            } else {
-                                artworkUiState.value[index]
-                            }
-                        } }*/
-                    ) {
-                        searchViewModel.getArtworkById(objectList.objectIDs[index], index) // == null) {
-                            // counter increase und index+counter = neuer index
-                            // Problem: kann nicht zwischen nicht geholtem und null Artwork unterscheiden
-
-                    }
-                }
-            }
-        }
-        /*
-        items(objectList.objectIDs.size) { index ->
-            val artwork = artworks.firstOrNull() { it?.id == objectList.objectIDs[index] }
+        val ids = objectList.objectIds
+        items(ids.size) { index ->
+            searchViewModel.getLocalArtwork(ids[index])
+            val artwork = artworks.firstOrNull { it.id == ids[index] }
             Box (
                 modifier = Modifier
                     .height(200.dp)
@@ -212,85 +172,47 @@ fun ArtworkGrid(
             ) {
                 if(artwork != null) {
                     ArtworkCard(
-                        viewModel = viewModel,
-                        counter = counter,
-                        index = index,
+                        artwork = artwork,
                         navController = navController
                     )
                 } else {
+                    LoadingCard()
                     LaunchedEffect(
-                        remember { derivedStateOf { gridState } }
+                        remember { derivedStateOf { gridState } },
+//                        remember { derivedStateOf {
+//                            searchViewModel.artworkUiStateList.value[index+1]
+//                        } },
                     ) {
-                        if(viewModel.getArtworkById(objectList.objectIDs[index]) == null) {
-                            // TODO
-                        }
+                        searchViewModel.getArtworkById(ids[index], index)
                     }
                 }
             }
         }
-         */
     }
 }
 
-@SuppressLint("StateFlowValueCalledInComposition")
-@Composable
-fun ArtworkCardState(
-    searchViewModel: SearchViewModel,
-    index: Int,
-    artwork: Artwork,
-    navController: NavController,
-    modifier: Modifier = Modifier,
-) {
-    when (searchViewModel.artworkUiStateList.value[index+1]) {
-        is ArtworkUiState.Loading -> ArtworkCard(
-            index = index,
-            artwork = artwork,
-            navController = navController
-        )
-        is ArtworkUiState.Success -> ArtworkCard(
-            index = index,
-            artwork = artwork,
-            navController = navController
-        )
-        is ArtworkUiState.Error -> ErrorScreen({}, modifier = modifier.fillMaxSize())
-    }
-        /*
-
-    val artwork = artworks.firstOrNull() { it?.id == objectList.objectIDs[index] }
-    Box (
-        modifier = Modifier
-            .height(200.dp)
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-    ) {
-        Card(
-            modifier = modifier,
-            shape = MaterialTheme.shapes.large,
-            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
-        ) {
-            Surface (
-                onClick = { navController.navigate("detail/${artwork.id}") }
-            ) {
-                AsyncImage(
-                    model = ImageRequest.Builder(context = LocalContext.current)
-                        .data(if (artwork.primaryImageSmall.isNotBlank()) artwork.primaryImageSmall
-                        else artwork.primaryImage)
-                        .crossfade(true).build(),
-                    error = null, //painterResource(R.drawable.ic_broken_image),
-                    placeholder = null, //painterResource(R.drawable.loading_img),
-                    contentDescription = artwork.title,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
-        }
-    }
-         */
-}
+//@SuppressLint("StateFlowValueCalledInComposition")
+//@Composable
+//fun ArtworkCardState(
+//    searchViewModel: SearchViewModel,
+//    index: Int,
+//    artwork: Artwork,
+//    navController: NavController,
+//    modifier: Modifier = Modifier,
+//) {
+//    when (searchViewModel.artworkUiStateList.value[index+1]) {
+//        is ArtworkUiState.Loading -> LoadingCard()
+//        is ArtworkUiState.Success ->
+//            ArtworkCard(
+//                artwork = artwork,
+//                navController = navController
+//            )
+//        is ArtworkUiState.Error -> LoadingCard()
+//    }
+//}
 
 @Composable
 fun ArtworkCard(
-    index: Int,
     artwork: Artwork,
     navController: NavController,
     modifier: Modifier = Modifier,
@@ -307,7 +229,8 @@ fun ArtworkCard(
             elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
         ) {
             Surface (
-                onClick = { navController.navigate("detail/${artwork.id}/$index") },
+                modifier = Modifier.fillMaxSize(),
+                onClick = { navController.navigate("detail/${artwork.id}") },
             ) {
                 DisplayArtworkImage(artwork = artwork, large = false)
             }
@@ -315,16 +238,28 @@ fun ArtworkCard(
     }
 }
 
-//@Composable
-//fun LoadingCard() {
-//    Row (
-//        horizontalArrangement = Arrangement.Center,
-//        verticalAlignment = Alignment.CenterVertically,
-//        modifier = Modifier
-//            .height(200.dp)
-//            .fillMaxWidth()
-//            .clip(RoundedCornerShape(16.dp))
-//    ) {
-//        CircularProgressIndicator()
-//    }
-//}
+@Composable
+fun DisplayArtworkImage(artwork: Artwork, large: Boolean = true) {
+    AsyncImage(
+        model = ImageRequest.Builder(context = LocalContext.current)
+            .data( if (artwork.primaryImage.isNotBlank()
+                && (large || artwork.primaryImageSmall.isBlank())) artwork.primaryImage
+            else artwork.primaryImageSmall)
+            .crossfade(true).build(),
+        placeholder = null, // TODO placeholder hinzufügen
+        contentDescription = artwork.title,
+        contentScale = ContentScale.Crop,
+        modifier = Modifier.fillMaxWidth()
+    )
+}
+
+@Composable
+fun LoadingCard() {
+    Row (
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.fillMaxSize()
+    ) {
+        CircularProgressIndicator()
+    }
+}

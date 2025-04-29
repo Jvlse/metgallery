@@ -1,17 +1,19 @@
 package de.example.met_gallery.model
 
+import com.squareup.moshi.Json
+import com.squareup.moshi.JsonClass
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
-@Serializable
+@JsonClass(generateAdapter = true)
 data class Constituent (
-    @SerialName(value = "constituentID")
-    val constituentID: Int,
+    @Json(name = "constituentID")
+    val constituentId: Int,
     val role: String,
     val name: String,
-    @SerialName(value = "constituentULAN_URL")
-    val constituentULAN_URL: String,
-    @SerialName(value = "constituentWikidata_URL")
-    val constituentWikidata_URL: String,
+    @Json(name = "constituentULAN_URL")
+    val constituentUlanUrl: String,
+    @Json(name = "constituentWikidata_URL")
+    val constituentWikidataUrl: String,
     val gender: String
 )
