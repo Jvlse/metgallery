@@ -39,12 +39,16 @@ fun AppNavigation(modifier: Modifier = Modifier) {
             )
         ) { backStackEntry ->
             val objectId = backStackEntry.arguments?.getInt("objectId") ?: 0
-            val artwork = searchViewModel.artworks.value.first { it.id == objectId }
-            detailViewModel.setArtwork(artwork)
-            DetailScreen(
-                detailViewModel = detailViewModel,
-                navController = navController,
-            )
+            val artwork = searchViewModel.getLocalArtwork(objectId)
+            if(artwork != null) {
+                detailViewModel.setArtwork(artwork)
+                DetailScreen(
+                    detailViewModel = detailViewModel,
+                    navController = navController,
+                )
+            } else {
+                navController.navigate("search")
+            }
         }
     }
 }

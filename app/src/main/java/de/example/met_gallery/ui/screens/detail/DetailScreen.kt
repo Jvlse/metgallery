@@ -119,9 +119,8 @@ fun ArtworkDetail(artwork: Artwork) {
         )
         Show("Department:", artwork.department)
         Show("Culture:", artwork.culture)
-        Show("Period:", artwork.period)
+        Show("Made during:", artwork.period)
         Show("Portfolio:", artwork.portfolio)
-        // show("Classification:", artwork.classification)
         Show("Rights:", artwork.rightsAndReproduction)
 
         val context = LocalContext.current

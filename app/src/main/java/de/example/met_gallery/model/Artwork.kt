@@ -7,14 +7,14 @@ import com.squareup.moshi.JsonClass
 data class Artwork (
     @Json(name = "objectID")
     val id: Int,
-    @Json(name = "isHighlight")
-    val isHighlight: Boolean, // important in the collection
-    @Json(name = "accessionNumber")
-    val accesionNumber: String, // not always unique
-    @Json(name = "accessionYear")
-    val accesionYear: String, // year it was acquired
-    @Json(name = "isPublicDomain")
-    val isPublicDomain: Boolean,
+//    @Json(name = "isHighlight")
+//    val isHighlight: Boolean, // important in the collection
+//    @Json(name = "accessionNumber")
+//    val accesionNumber: String, // not always unique
+//    @Json(name = "accessionYear")
+//    val accesionYear: String, // year it was acquired
+//    @Json(name = "isPublicDomain")
+//    val isPublicDomain: Boolean,
     @Json(name = "primaryImage")
     val primaryImage: String,
     @Json(name = "primaryImageSmall")
@@ -39,12 +39,12 @@ data class Artwork (
     val reign: String, // monarch or ruler under which an object was created ("Amenhotep III", "Darius I", "Louis XVI")
     @Json(name = "portfolio")
     val portfolio: String, // "Birds of America", "The Hudson River Portfolio", "Speculum Romanae Magnificentiae"
-    @Json(name = "artistPrefix")
-    val artistPrefix: String, // "In the Style of", "Possibly by", "Written in French by"
-    @Json(name = "creditLine")
-    val creditLine: String, // Where and when accuired by museum
-    @Json(name = "classification")
-    val classification: String, // ("Paintings", "Ceramics")
+//    @Json(name = "artistPrefix")
+//    val artistPrefix: String, // "In the Style of", "Possibly by", "Written in French by"
+//    @Json(name = "creditLine")
+//    val creditLine: String, // Where and when accuired by museum
+//    @Json(name = "classification")
+//    val classification: String, // ("Paintings", "Ceramics")
     @Json(name = "rightsAndReproduction")
     val rightsAndReproduction: String, // "© 2018 Estate of Pablo Picasso / Artists Rights Society (ARS), New York"
     @Json(name = "objectURL")
