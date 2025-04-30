@@ -12,15 +12,20 @@ object FakeDataSource {
     private const val artistNameOne = "Artist One"
     private const val artistGenderOne = "Gender One"
     private const val idTwo = 2
+    private const val imgTwo = "url.two"
     private const val artistIdTwo = 2
     private const val artistNameTwo = "Artist Two"
     private const val artistGenderTwo = "Gender Two"
+    private const val idThree = 3
+    private const val artistIdThree = 3
+    private const val artistNameThree = "Artist Three"
+    private const val artistGenderThree = "Gender Three"
 
     val blank = ""
 
     val objectList = ObjectList(
-        total = 2,
-        objectIds = listOf(idOne,idTwo)
+        total = 3,
+        objectIds = listOf(idOne, idTwo, idThree)
     )
 
     val artworkOne = Artwork(
@@ -52,7 +57,7 @@ object FakeDataSource {
 
     val artworkTwo = Artwork(
         id = idTwo,
-        primaryImage = blank,
+        primaryImage = imgTwo,
         primaryImageSmall = blank,
         additionalImages = emptyList(),
         constituents = listOf(
@@ -63,6 +68,33 @@ object FakeDataSource {
                 constituentUlanUrl = blank,
                 constituentWikidataUrl = blank,
                 gender = artistGenderTwo
+            )
+        ),
+        department = blank,
+        objectName = blank,
+        title = blank,
+        culture = blank,
+        period = blank,
+        dynasty = blank,
+        reign = blank,
+        portfolio = blank,
+        rightsAndReproduction = blank,
+        objectUrl = blank
+    )
+
+    val artworkNoUrl = Artwork(
+        id = idThree,
+        primaryImage = blank,
+        primaryImageSmall = blank,
+        additionalImages = emptyList(),
+        constituents = listOf(
+            Constituent(
+                constituentId = artistIdThree,
+                role = blank,
+                name = artistNameThree,
+                constituentUlanUrl = blank,
+                constituentWikidataUrl = blank,
+                gender = artistGenderThree
             )
         ),
         department = blank,

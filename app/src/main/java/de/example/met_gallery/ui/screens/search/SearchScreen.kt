@@ -46,11 +46,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import de.example.met_gallery.model.Artwork
 import de.example.met_gallery.model.ObjectList
+import de.example.met_gallery.fake.FakeArtworkRepository
+import de.example.met_gallery.fake.FakeDataSource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -91,8 +95,7 @@ fun SearchScreen(
             is ObjectListUiState.Success ->
                 ArtworkGrid(
                     searchViewModel = searchViewModel,
-                    objectList = (searchViewModel.objectListUiState
-                            as ObjectListUiState.Success).objects,
+                    objectList = objectListUiState.objects,
                     contentPadding = contentPadding,
                     modifier = modifier
                         .fillMaxSize()
@@ -243,4 +246,21 @@ fun LoadingCard() {
     ) {
         CircularProgressIndicator()
     }
+}
+
+@Preview
+@Composable
+private fun SearchScreenPreview() {
+    val navController = rememberNavController()
+
+    val viewModel = SearchViewModel(
+        artworkRepository = FakeArtworkRepository()
+    )
+    SearchScreen(
+        searchViewModel = viewModel,
+        objectListUiState = ObjectListUiState.Success(FakeDataSource.objectList),
+        navController = navController,
+        modifier = Modifier,
+        retryAction = { },
+    )
 }

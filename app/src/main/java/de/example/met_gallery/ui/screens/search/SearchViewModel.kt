@@ -26,7 +26,7 @@ sealed interface ObjectListUiState {
     object Loading : ObjectListUiState
 }
 
-class SearchViewModel(
+open class SearchViewModel(
     private val artworkRepository: ArtworkRepository,
     // searchArtworks: SearchArtworksUseCase
 ) : ViewModel() {

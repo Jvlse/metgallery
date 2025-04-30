@@ -29,14 +29,54 @@ class SearchViewModelTest {
     }
 
     @Test
-    fun searchViewModel_getLocalArtworkById_findsCorrectArtwork() = runTest {
+    fun searchViewModel_getLocalArtworkById_addsArtwork() = runTest {
         val artwork = FakeDataSource.artworkOne
         val id = artwork.id
-        viewModel.getArtworkById(FakeDataSource.artworkOne)
+        viewModel.getArtworkById(id)
 
         assertEquals(
             viewModel.getLocalArtworkById(id),
-            FakeDataSource.artworkOne
+            artwork
+        )
+    }
+
+    @Test
+    fun searchViewModel_getLocalArtworkById_addMultipleArtwork() = runTest {
+        val artworkOne = FakeDataSource.artworkOne
+        val idOne = artworkOne.id
+        viewModel.getArtworkById(idOne)
+
+        val artworkTwo = FakeDataSource.artworkTwo
+        val idTwo = artworkTwo.id
+        viewModel.getArtworkById(idTwo)
+
+        assertEquals(
+            viewModel.getLocalArtworkById(idOne),
+            artworkOne
+        )
+        assertEquals(
+            viewModel.getLocalArtworkById(idTwo),
+            artworkTwo
+        )
+    }
+
+    @Test
+    fun searchViewModel_getLocalArtworkById_removeArtworkWithNoUrl() = runTest {
+        val artworkNoUrl = FakeDataSource.artworkNoUrl
+        val idNoUrl = artworkNoUrl.id
+        viewModel.getArtworkById(idNoUrl)
+
+        val artworkOne = FakeDataSource.artworkOne
+        val idOne = artworkOne.id
+        viewModel.getArtworkById(idOne)
+
+        assertEquals(
+            viewModel.getLocalArtworkById(idOne),
+            artworkOne
+        )
+        assertEquals(
+            viewModel.getLocalArtworkById(idNoUrl),
+            null
         )
     }
 }
