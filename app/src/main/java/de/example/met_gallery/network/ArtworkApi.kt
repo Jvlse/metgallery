@@ -8,9 +8,6 @@ import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface ArtworkApi {
-    @GET("search?q=&hasImages=true")
-    suspend fun getArtworks(): Response<ObjectList>
-
     @GET("objects/{objectID}")
     suspend fun getArtworkById(@Path("objectID") id: Int): Response<Artwork>
 

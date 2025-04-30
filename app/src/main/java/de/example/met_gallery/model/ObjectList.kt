@@ -6,7 +6,7 @@ import com.squareup.moshi.JsonClass
 @JsonClass(generateAdapter = true)
 data class ObjectList (
     @Json(name = "total")
-    val total: Int, // total number of objects
+    val total: Int,
     @Json(name = "objectIDs")
-    val objectIds: List<Int>, // eachs objects id
+    val objectIds: List<Int>,
 )

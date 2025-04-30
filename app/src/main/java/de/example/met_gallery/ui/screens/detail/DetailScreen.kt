@@ -31,7 +31,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -40,7 +39,6 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
-import coil.request.ImageRequest
 import de.example.met_gallery.model.Artwork
 import androidx.core.net.toUri
 import de.example.met_gallery.ui.screens.search.DisplayArtworkImage
@@ -53,12 +51,18 @@ fun DetailScreen(
     onLeave: () -> Unit = { detailViewModel.leaveDetailScreen() },
     navController: NavController,
 ) {
+    // collectasstateval
     Scaffold (
         topBar = {
             CenterAlignedTopAppBar(
                 title = { Text("Details") },
                 navigationIcon = {
-                    IconButton(onClick = { navController.navigateUp(); onLeave }) {
+                    IconButton(
+                        onClick = {
+                            navController.navigateUp()
+                            onLeave
+                        }
+                    ) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 }
@@ -154,7 +158,6 @@ fun PrintAdditionalImages(artwork: Artwork) {
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Show images if URLs are not blank
         (listOf(
             artwork.primaryImage,
         ) + artwork.additionalImages).filter { it.isNotBlank() }.forEach { url ->
@@ -165,7 +168,7 @@ fun PrintAdditionalImages(artwork: Artwork) {
                 elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
             ) {
                 Surface (
-                    onClick = { /* TODO Open Image Fullscreen */ }
+                    onClick = { /* Open Image Fullscreen */ }
                 ) {
                     AsyncImage(
                         model = url,

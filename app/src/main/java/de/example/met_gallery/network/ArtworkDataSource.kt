@@ -4,27 +4,13 @@ import de.example.met_gallery.model.Artwork
 import de.example.met_gallery.model.ObjectList
 
 interface ArtworkDataSource {
-    suspend fun getArtworks(): ObjectList
     suspend fun getArtworkById(id: Int): Artwork
     suspend fun searchArtworks(query: String): ObjectList
 }
 
 class ArtworkDataSourceImpl (private val api: ArtworkApi) : ArtworkDataSource {
-    override suspend fun getArtworks(): ObjectList {
-        val response = api.getArtworks()
-        val responseBody = response.body()
-
-        val artworks = if (response.isSuccessful && responseBody != null) {
-            responseBody
-        } else {
-            throw Exception("Request failed")
-        }
-
-        return artworks
-    }
-
     override suspend fun searchArtworks(query: String): ObjectList {
-        val response = api.searchArtworks(query)
+        val response = api.searchArtworks("\"" + query + "\"")
         val responseBody = response.body()
 
         val artworks = if (response.isSuccessful && responseBody != null) {

@@ -33,6 +33,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -42,9 +43,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -59,15 +58,13 @@ import de.example.met_gallery.model.ObjectList
 fun SearchScreen(
     searchViewModel: SearchViewModel,
     objectListUiState: ObjectListUiState,
-    // artworkUiState: StateFlow<List<ArtworkUiState>>,
     navController: NavController,
-    onSuccessState: @Composable (PaddingValues) -> Unit,
     modifier: Modifier = Modifier,
-    retryAction: () -> Unit = { searchViewModel.getObjectIds() },
+    contentPadding: PaddingValues = PaddingValues(0.dp),
+    retryAction: () -> Unit = { searchViewModel.getArtworks() },
 ) {
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
-    var text: String by remember { mutableStateOf("")}
-    var active = false
+    val text by searchViewModel.search.collectAsState()
     Scaffold (
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
@@ -76,26 +73,40 @@ fun SearchScreen(
                 inputField = {
                     SearchBarDefaults.InputField(
                         query = text,
-                        onQueryChange = { text = it },
+                        onQueryChange = { searchViewModel.setSearch(it) },
                         onSearch = {
-                            active = false
-                            searchViewModel.searchArtworks(text)
+                            searchViewModel.getArtworks(text)
                                    },
-                        expanded = active,
-                        onExpandedChange = { active = it },
+                        expanded = false,
+                        onExpandedChange = { },
                         placeholder = { Text("Search keyword") },
                         leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
                     )
                 },
-                expanded = active,
-                onExpandedChange = { active = it },
+                expanded = false,
+                onExpandedChange = { },
                 content = { }
             )
         },
     ) { innerPadding ->
         when (objectListUiState) {
             is ObjectListUiState.Loading -> LoadingScreen(navController)
-            is ObjectListUiState.Success -> onSuccessState(innerPadding)
+            is ObjectListUiState.Success ->
+                ArtworkGrid(
+                    searchViewModel = searchViewModel,
+                    objectList = (searchViewModel.objectListUiState
+                            as ObjectListUiState.Success).objects,
+                    contentPadding = contentPadding,
+                    modifier = modifier
+                        .fillMaxSize()
+                        .padding(
+                            PaddingValues(
+                                top = innerPadding.calculateTopPadding() / 1.3f,
+                                bottom = 0.dp,
+                            )
+                        ),
+                    navController = navController,
+                )
             is ObjectListUiState.Error -> ErrorScreen(retryAction, modifier.fillMaxSize())
         }
     }
@@ -145,7 +156,6 @@ fun ErrorScreen(retryAction: () -> Unit, modifier: Modifier = Modifier) {
 fun ArtworkGrid(
     searchViewModel: SearchViewModel,
     objectList: ObjectList,
-    // artworkUiState: StateFlow<List<ArtworkUiState>>,
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(0.dp),
     navController: NavController,
@@ -161,8 +171,7 @@ fun ArtworkGrid(
         contentPadding = contentPadding,
     ) {
         val ids = objectList.objectIds
-        items(ids.size) { index ->
-            searchViewModel.getLocalArtwork(ids[index])
+        itemsIndexed(ids, key = { index, id -> id }) { index, id ->
             val artwork = artworks.firstOrNull { it.id == ids[index] }
             Box (
                 modifier = Modifier
@@ -178,38 +187,15 @@ fun ArtworkGrid(
                 } else {
                     LoadingCard()
                     LaunchedEffect(
-                        remember { derivedStateOf { gridState } },
-//                        remember { derivedStateOf {
-//                            searchViewModel.artworkUiStateList.value[index+1]
-//                        } },
+                        remember { derivedStateOf { gridState } }
                     ) {
-                        searchViewModel.getArtworkById(ids[index], index)
+                        searchViewModel.getArtworkById(ids[index])
                     }
                 }
             }
         }
     }
 }
-
-//@SuppressLint("StateFlowValueCalledInComposition")
-//@Composable
-//fun ArtworkCardState(
-//    searchViewModel: SearchViewModel,
-//    index: Int,
-//    artwork: Artwork,
-//    navController: NavController,
-//    modifier: Modifier = Modifier,
-//) {
-//    when (searchViewModel.artworkUiStateList.value[index+1]) {
-//        is ArtworkUiState.Loading -> LoadingCard()
-//        is ArtworkUiState.Success ->
-//            ArtworkCard(
-//                artwork = artwork,
-//                navController = navController
-//            )
-//        is ArtworkUiState.Error -> LoadingCard()
-//    }
-//}
 
 @Composable
 fun ArtworkCard(

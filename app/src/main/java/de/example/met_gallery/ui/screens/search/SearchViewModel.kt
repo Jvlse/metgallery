@@ -1,6 +1,5 @@
 package de.example.met_gallery.ui.screens.search
 
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -13,7 +12,6 @@ import de.example.met_gallery.network.ArtworkRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import okio.IOException
 import java.lang.Exception
@@ -28,59 +26,26 @@ sealed interface ObjectListUiState {
     object Loading : ObjectListUiState
 }
 
-sealed interface ArtworkUiState {
-    data class Success(
-        val artwork: Artwork?
-    ) : ArtworkUiState
-    data class Error(
-        val e: Exception
-    ) : ArtworkUiState
-    object Loading : ArtworkUiState
-}
-
 class SearchViewModel(
     private val artworkRepository: ArtworkRepository
 ) : ViewModel() {
     var objectListUiState: ObjectListUiState by mutableStateOf(ObjectListUiState.Loading)
         private set
 
-    private val _artworkUiStateList = MutableStateFlow<List<ArtworkUiState>>(listOf(ArtworkUiState.Loading))
-    val artworkUiStateList: StateFlow<List<ArtworkUiState>> = _artworkUiStateList.asStateFlow()
-
     private val _artworks: MutableStateFlow<Set<Artwork>> = MutableStateFlow(emptySet())
     val artworks: StateFlow<Set<Artwork>> = _artworks.asStateFlow()
 
+    private val _search: MutableStateFlow<String> = MutableStateFlow("")
+    val search: StateFlow<String> = _search.asStateFlow()
+
     private val _errors: MutableStateFlow<Set<Int>> = MutableStateFlow(emptySet())
 
-    init {
-        getObjectIds()
-    }
-
-    fun getObjectIds() {
-        if(objectListUiState is ObjectListUiState.Success) {
-            return
-        } else {
-            viewModelScope.launch {
-                objectListUiState = ObjectListUiState.Loading
-                objectListUiState = try {
-                    ObjectListUiState.Success(
-                        artworkRepository.getArtworks()
-                    )
-                } catch (e: IOException) {
-                    ObjectListUiState.Error(e)
-                } catch (e: HttpException) {
-                    ObjectListUiState.Error(e)
-                }
-            }
-        }
-    }
-
-    fun searchArtworks(query: String) {
+    fun getArtworks(query: String? = null) {
         viewModelScope.launch {
             objectListUiState = ObjectListUiState.Loading
             objectListUiState = try {
                 ObjectListUiState.Success(
-                    artworkRepository.searchArtworks(query)
+                    artworkRepository.searchArtworks(query ?: "")
                 )
             } catch (e: IOException) {
                 ObjectListUiState.Error(e)
@@ -90,22 +55,13 @@ class SearchViewModel(
         }
     }
 
-    fun getArtworkById(id: Int, index: Int) {
+    fun getArtworkById(id: Int) {
         // already fetched
         if (getLocalArtwork(id) != null) return
 
         if (objectListUiState is ObjectListUiState.Success) {
             viewModelScope.launch {
-                _artworkUiStateList.update { currentList ->
-                    if (index in currentList.indices) {
-                        currentList.toMutableList().apply {
-                            this += ArtworkUiState.Loading
-                        }.toList() // Create a new list with the updated element
-                    } else {
-                        currentList // Return the original list if the index is invalid
-                    }
-                }
-                handleResult(id, index)
+                handleResult(id)
             }
         }
     }
@@ -114,17 +70,19 @@ class SearchViewModel(
         return _artworks.value.firstOrNull { it.id == id }
     }
 
-    suspend fun handleResult(id: Int, index: Int) {
+    fun setSearch(search : String) {
+        _search.value = search
+    }
+    fun getSearch(): String {
+        return search.value
+    }
+
+    suspend fun handleResult(id: Int) {
         val searchResult = artworkRepository.getArtworkById(id)
         searchResult.fold(
             onSuccess = { artwork ->
                 if(artwork.primaryImage.isNotBlank()
                     || artwork.primaryImageSmall.isNotBlank()) {
-                    _artworkUiStateList.update { currentList ->
-                        currentList.toMutableList().apply {
-                            this[index] = ArtworkUiState.Success(artwork)
-                        }
-                    }
                     _artworks.value += artwork
                 } else {
                     removeObjectFromList(id)

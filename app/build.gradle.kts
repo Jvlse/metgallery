@@ -43,6 +43,8 @@ dependencies {
     implementation(libs.androidx.paging.runtime)
     implementation(libs.androidx.paging.compose)
 
+    implementation(libs.logging.interceptor)
+
     implementation(libs.androidx.material)
     implementation(libs.navigation)
     // Moshi
