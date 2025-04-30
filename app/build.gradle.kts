@@ -47,17 +47,24 @@ dependencies {
 
     implementation(libs.androidx.material)
     implementation(libs.navigation)
+
     // Moshi
     implementation(libs.moshi.kotlin)
+
     // Koin
     implementation(libs.koin.android)
     implementation(libs.koin.compose)
+
     // Retrofit
     implementation(libs.retrofit.core)
     implementation(libs.retrofit.moshiConverter)
     implementation(libs.retrofit2.kotlinx.serialization.converter)
-    implementation(libs.coil.compose)
+
     implementation(libs.kotlinx.serialization.json)
+
+    // Coil
+    implementation(libs.coil.compose)
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)

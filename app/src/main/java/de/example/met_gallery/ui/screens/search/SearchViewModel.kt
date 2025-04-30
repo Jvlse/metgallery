@@ -18,7 +18,7 @@ import java.lang.Exception
 
 sealed interface ObjectListUiState {
     data class Success(
-        val objects: ObjectList
+        val objects: ObjectList,
     ) : ObjectListUiState
     data class Error(
         val e: Exception
@@ -27,7 +27,8 @@ sealed interface ObjectListUiState {
 }
 
 class SearchViewModel(
-    private val artworkRepository: ArtworkRepository
+    private val artworkRepository: ArtworkRepository,
+    // searchArtworks: SearchArtworksUseCase
 ) : ViewModel() {
     var objectListUiState: ObjectListUiState by mutableStateOf(ObjectListUiState.Loading)
         private set
@@ -45,7 +46,7 @@ class SearchViewModel(
             objectListUiState = ObjectListUiState.Loading
             objectListUiState = try {
                 ObjectListUiState.Success(
-                    artworkRepository.searchArtworks(query ?: "")
+                    artworkRepository.getArtworks(query ?: "")
                 )
             } catch (e: IOException) {
                 ObjectListUiState.Error(e)
@@ -57,52 +58,51 @@ class SearchViewModel(
 
     fun getArtworkById(id: Int) {
         // already fetched
-        if (getLocalArtwork(id) != null) return
+        if (getLocalArtworkById(id) != null) return
 
-        if (objectListUiState is ObjectListUiState.Success) {
-            viewModelScope.launch {
-                handleResult(id)
-            }
+        viewModelScope.launch {
+            val searchResult = artworkRepository.getArtworkById(id)
+            searchResult.fold(
+                onSuccess = { artwork ->
+                    if(artwork.primaryImage.isNotBlank()
+                        || artwork.primaryImageSmall.isNotBlank()) {
+                        _artworks.value += artwork
+                    } else {
+                        removeObjectFromList(id)
+                    }
+                },
+                onFailure = { exception ->
+                    if(exception.message == "Artwork not found") {
+                        removeObjectFromList(id)
+                        _errors.value += id
+                    }
+                }
+            )
         }
     }
 
-    fun getLocalArtwork(id: Int): Artwork? {
+    fun getLocalArtworkById(id: Int): Artwork? {
         return _artworks.value.firstOrNull { it.id == id }
     }
 
     fun setSearch(search : String) {
         _search.value = search
     }
+
     fun getSearch(): String {
         return search.value
     }
 
-    suspend fun handleResult(id: Int) {
-        val searchResult = artworkRepository.getArtworkById(id)
-        searchResult.fold(
-            onSuccess = { artwork ->
-                if(artwork.primaryImage.isNotBlank()
-                    || artwork.primaryImageSmall.isNotBlank()) {
-                    _artworks.value += artwork
-                } else {
-                    removeObjectFromList(id)
-                }
-            },
-            onFailure = {
-                removeObjectFromList(id)
-                _errors.value += id
-            }
-        )
-    }
-
     // filter ID out of list so that Card doesn't get rendered in UI
     fun removeObjectFromList(id: Int) {
-        objectListUiState = ObjectListUiState.Success(
-            ObjectList(
-                (objectListUiState as ObjectListUiState.Success).objects.total,
-                (objectListUiState as ObjectListUiState.Success)
-                    .objects.objectIds.filter { it != id }
+        if(objectListUiState is ObjectListUiState.Success) {
+            objectListUiState = ObjectListUiState.Success(
+                ObjectList(
+                    (objectListUiState as ObjectListUiState.Success).objects.total,
+                    (objectListUiState as ObjectListUiState.Success)
+                        .objects.objectIds.filter { it != id }
+                )
             )
-        )
+        }
     }
 }

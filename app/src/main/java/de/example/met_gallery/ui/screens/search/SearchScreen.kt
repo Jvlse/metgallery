@@ -183,7 +183,7 @@ fun ArtworkGrid(
                 } else {
                     LoadingCard()
                     LaunchedEffect(
-                        remember { derivedStateOf { gridState } }
+                        remember { derivedStateOf { gridState } },
                     ) {
                         searchViewModel.getArtworkById(ids[index])
                     }
@@ -228,7 +228,6 @@ fun DisplayArtworkImage(artwork: Artwork, large: Boolean = true) {
                 && (large || artwork.primaryImageSmall.isBlank())) artwork.primaryImage
             else artwork.primaryImageSmall)
             .crossfade(true).build(),
-        placeholder = null, // TODO placeholder hinzufügen
         contentDescription = artwork.title,
         contentScale = ContentScale.Crop,
         modifier = Modifier.fillMaxWidth()

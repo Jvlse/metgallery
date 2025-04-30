@@ -5,12 +5,12 @@ import de.example.met_gallery.model.ObjectList
 
 interface ArtworkRepository {
     suspend fun getArtworkById(id: Int): Result<Artwork>
-    suspend fun searchArtworks(query: String): ObjectList
+    suspend fun getArtworks(query: String): ObjectList
 }
 
 class ArtworkRepositoryImpl(private val dataSource: ArtworkDataSource) : ArtworkRepository {
-    override suspend fun searchArtworks(query: String): ObjectList {
-        return dataSource.searchArtworks(query)
+    override suspend fun getArtworks(query: String): ObjectList {
+        return dataSource.getArtworks(query)
     }
 
     override suspend fun getArtworkById(id: Int): Result<Artwork> {

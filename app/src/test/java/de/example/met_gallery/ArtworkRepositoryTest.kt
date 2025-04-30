@@ -10,7 +10,7 @@ import org.junit.Test
 
 class ArtworkRepositoryTest {
     @Test
-    fun networkMarsPhotosRepository_getMarsPhotos_verifyPhotoList() =
+    fun ArtworkRepository_getArtworkss_verifyObjectList() =
         runTest {
             val repository = ArtworkRepositoryImpl(
                 ArtworkDataSourceImpl (
@@ -19,7 +19,7 @@ class ArtworkRepositoryTest {
             )
             assertEquals(
                 FakeDataSource.objectList,
-                repository.searchArtworks("")
+                repository.getArtworks("")
             )
         }
 }

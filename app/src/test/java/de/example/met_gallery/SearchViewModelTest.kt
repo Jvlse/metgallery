@@ -7,29 +7,36 @@ import de.example.met_gallery.ui.screens.search.ObjectListUiState
 import de.example.met_gallery.ui.screens.search.SearchViewModel
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
-
 import org.junit.Assert.*
 import org.junit.Rule
 
-/**
- * See [testing documentation](http://d.android.com/tools/testing).
- */
 class SearchViewModelTest {
     @get:Rule
     val testDispatcher = TestDispatcherRule()
 
+    private val viewModel = SearchViewModel(
+        artworkRepository = FakeArtworkRepository()
+    )
+
     @Test
-    fun searchViewModel_get_verifyMarsUiStateSuccess() =
-        runTest {
-            val viewModel = SearchViewModel(
-                artworkRepository = FakeArtworkRepository()
-            )
+    fun searchViewModel_getArtworks_verifyObjectListUiStateSuccess() = runTest {
+        viewModel.getArtworks()
 
-            viewModel.getArtworks()
+        assertEquals(
+            ObjectListUiState.Success(FakeDataSource.objectList),
+            viewModel.objectListUiState
+        )
+    }
 
-            assertEquals(
-                ObjectListUiState.Success(FakeDataSource.objectList),
-                viewModel.objectListUiState
-            )
-        }
+    @Test
+    fun searchViewModel_getLocalArtworkById_findsCorrectArtwork() = runTest {
+        val artwork = FakeDataSource.artworkOne
+        val id = artwork.id
+        viewModel.getArtworkById(FakeDataSource.artworkOne)
+
+        assertEquals(
+            viewModel.getLocalArtworkById(id),
+            FakeDataSource.artworkOne
+        )
+    }
 }

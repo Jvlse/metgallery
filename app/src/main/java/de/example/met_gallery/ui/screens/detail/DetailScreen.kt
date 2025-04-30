@@ -38,11 +38,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import coil.compose.AsyncImage
 import de.example.met_gallery.model.Artwork
 import androidx.core.net.toUri
 import de.example.met_gallery.ui.screens.search.DisplayArtworkImage
 import androidx.compose.runtime.getValue
+import coil.compose.AsyncImage
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -87,17 +87,13 @@ fun ArtworkScreen(
             shape = MaterialTheme.shapes.extraLarge,
             elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
         ) {
-            Surface (
-                onClick = { /* Open Image Fullscreen */ }
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = 500.dp)
+                    .verticalScroll(rememberScrollState())
             ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .heightIn(max = 500.dp)
-                        .verticalScroll(rememberScrollState())
-                ) {
-                    DisplayArtworkImage(artwork)
-                }
+                DisplayArtworkImage(artwork)
             }
         }
         Text("by ${artwork.constituents?.get(0)?.name ?: "Unknown"}")
@@ -140,9 +136,7 @@ fun ArtworkDetail(artwork: Artwork) {
                 }
             }
         }
-
         Spacer(modifier = Modifier.height(8.dp))
-
         PrintAdditionalImages(artwork = artwork)
     }
 }
@@ -166,18 +160,47 @@ fun PrintAdditionalImages(artwork: Artwork) {
                 shape = MaterialTheme.shapes.large,
                 elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
             ) {
-                Surface (
-                    onClick = { /* Open Image Fullscreen */ }
-                ) {
-                    AsyncImage(
-                        model = url,
-                        contentDescription = "Image",
-                        modifier = Modifier.fillMaxSize()
-                    )
-                }
+                AsyncImage(
+                    model = url,
+                    contentDescription = "Image",
+                    modifier = Modifier.fillMaxSize()
+                )
             }
         }
     }
+        /*
+        val images = (
+            listOf( artwork.primaryImage ) + artwork.additionalImages
+            ).filter { it.isNotBlank() }
+
+    val carouselState = rememberCarouselState { images.size }
+
+    HorizontalMultiBrowseCarousel(
+        state = carouselState,
+        preferredItemWidth = 800.dp,
+        itemSpacing = 8.dp,
+        contentPadding = PaddingValues(horizontal = 16.dp),
+        flingBehavior = CarouselDefaults.singleAdvanceFlingBehavior(carouselState),
+        modifier = Modifier.clip(RoundedCornerShape(16.dp)).heightIn(min = 300.dp),
+    ) { index ->
+        Card(
+            modifier = Modifier
+                .fillMaxSize(),
+            shape = MaterialTheme.shapes.large,
+            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+        ) {
+            Surface (
+                onClick = { /* Open Image Fullscreen */ }
+            ) {
+                AsyncImage(
+                    model = images[index],
+                    contentDescription = "Image",
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
+        }
+    }
+         */
 }
 
 @Composable

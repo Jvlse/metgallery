@@ -11,6 +11,6 @@ class FakeArtworkApi : ArtworkApi {
     }
 
     override suspend fun getArtworkById(id: Int): Response<Artwork> {
-        return Response.success(FakeDataSource.artwork)
+        return Response.success(FakeDataSource.artworkOne)
     }
 }
