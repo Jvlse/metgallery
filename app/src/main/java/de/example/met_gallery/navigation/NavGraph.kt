@@ -1,6 +1,5 @@
 package de.example.met_gallery.navigation
 
-import android.annotation.SuppressLint
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavType
@@ -14,7 +13,6 @@ import de.example.met_gallery.ui.screens.detail.DetailScreen
 import de.example.met_gallery.ui.screens.detail.DetailViewModel
 import de.example.met_gallery.ui.screens.search.SearchScreen
 
-@SuppressLint("StateFlowValueCalledInComposition")
 @Composable
 fun AppNavigation(modifier: Modifier = Modifier) {
     val navController = rememberNavController()

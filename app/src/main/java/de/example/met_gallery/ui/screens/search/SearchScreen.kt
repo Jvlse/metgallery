@@ -1,6 +1,5 @@
 package de.example.met_gallery.ui.screens.search
 
-import android.annotation.SuppressLint
 import androidx.compose.runtime.getValue
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -74,9 +73,7 @@ fun SearchScreen(
                     SearchBarDefaults.InputField(
                         query = text,
                         onQueryChange = { searchViewModel.setSearch(it) },
-                        onSearch = {
-                            searchViewModel.getArtworks(text)
-                                   },
+                        onSearch = { searchViewModel.getArtworks(text) },
                         expanded = false,
                         onExpandedChange = { },
                         placeholder = { Text("Search keyword") },
@@ -151,7 +148,6 @@ fun ErrorScreen(retryAction: () -> Unit, modifier: Modifier = Modifier) {
     }
 }
 
-@SuppressLint("StateFlowValueCalledInComposition")
 @Composable
 fun ArtworkGrid(
     searchViewModel: SearchViewModel,

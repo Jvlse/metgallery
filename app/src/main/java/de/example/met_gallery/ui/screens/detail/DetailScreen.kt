@@ -1,6 +1,5 @@
 package de.example.met_gallery.ui.screens.detail
 
-import android.annotation.SuppressLint
 import android.content.Intent
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -29,6 +28,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -42,8 +42,8 @@ import coil.compose.AsyncImage
 import de.example.met_gallery.model.Artwork
 import androidx.core.net.toUri
 import de.example.met_gallery.ui.screens.search.DisplayArtworkImage
+import androidx.compose.runtime.getValue
 
-@SuppressLint("StateFlowValueCalledInComposition")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DetailScreen(
@@ -51,7 +51,7 @@ fun DetailScreen(
     onLeave: () -> Unit = { detailViewModel.leaveDetailScreen() },
     navController: NavController,
 ) {
-    // collectasstateval
+    val artwork by detailViewModel.artwork.collectAsState()
     Scaffold (
         topBar = {
             CenterAlignedTopAppBar(
@@ -69,7 +69,7 @@ fun DetailScreen(
             )
         },
     ) { innerPadding ->
-        ArtworkScreen(artwork = detailViewModel.artwork.value!!, modifier = Modifier.padding(innerPadding))
+        ArtworkScreen(artwork = artwork!!, modifier = Modifier.padding(innerPadding))
     }
 }
 
