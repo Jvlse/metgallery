@@ -11,11 +11,17 @@ object FakeDataSource {
     private const val artistIdOne= 1
     private const val artistNameOne = "Artist One"
     private const val artistGenderOne = "Gender One"
+    private const val objectNameOne = "objectName One"
+    private const val titleOne = "title One"
+    private const val cultureOne = "culture One"
+    private const val periodOne = "period One"
+
     private const val idTwo = 2
     private const val imgTwo = "url.two"
     private const val artistIdTwo = 2
     private const val artistNameTwo = "Artist Two"
     private const val artistGenderTwo = "Gender Two"
+
     private const val idThree = 3
     private const val artistIdThree = 3
     private const val artistNameThree = "Artist Three"
@@ -44,10 +50,10 @@ object FakeDataSource {
             )
         ),
         department = blank,
-        objectName = blank,
-        title = blank,
-        culture = blank,
-        period = blank,
+        objectName = objectNameOne,
+        title = titleOne,
+        culture = cultureOne,
+        period = periodOne,
         dynasty = blank,
         reign = blank,
         portfolio = blank,

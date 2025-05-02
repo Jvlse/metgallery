@@ -3,17 +3,17 @@ package de.example.met_gallery.ui.screens.search
 import androidx.compose.runtime.getValue
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.Button
+import androidx.compose.material.icons.filled.WifiOff
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -38,6 +38,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.SearchBar
 import androidx.compose.material3.SearchBarDefaults
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -46,11 +51,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import de.example.met_gallery.R
 import de.example.met_gallery.model.Artwork
 import de.example.met_gallery.model.ObjectList
 import de.example.met_gallery.fake.FakeArtworkRepository
@@ -64,15 +71,22 @@ fun SearchScreen(
     navController: NavController,
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(0.dp),
-    retryAction: () -> Unit = { searchViewModel.getArtworks() },
+    retryAction: () -> Unit = { searchViewModel.getArtworks(searchViewModel.getSearch());  },
 ) {
+    LaunchedEffect(
+        remember { derivedStateOf { objectListUiState } }
+    ) {
+        searchViewModel.getArtworks(searchViewModel.getSearch())
+    }
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
     val text by searchViewModel.search.collectAsState()
     Scaffold (
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             SearchBar(
-                modifier = Modifier.padding(horizontal = 8.dp).fillMaxWidth(),
+                modifier = Modifier
+                    .padding(horizontal = 8.dp)
+                    .fillMaxWidth(),
                 inputField = {
                     SearchBarDefaults.InputField(
                         query = text,
@@ -80,7 +94,7 @@ fun SearchScreen(
                         onSearch = { searchViewModel.getArtworks(text) },
                         expanded = false,
                         onExpandedChange = { },
-                        placeholder = { Text("Search keyword") },
+                        placeholder = { Text(stringResource(R.string.search_keyword)) },
                         leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
                     )
                 },
@@ -107,7 +121,7 @@ fun SearchScreen(
                         ),
                     navController = navController,
                 )
-            is ObjectListUiState.Error -> ErrorScreen(retryAction, modifier.fillMaxSize())
+            is ObjectListUiState.Error -> ErrorScreen(retryAction, navController = navController, modifier.fillMaxSize())
         }
     }
 }
@@ -118,19 +132,23 @@ fun LoadingScreen(navController: NavController) {
     Scaffold (
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Details") },
+                title = { Text(stringResource(R.string.details)) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.back)
+                        )
                     }
                 }
             )
         },
     ) { innerPadding ->
-        Column(
-            modifier = Modifier.fillMaxSize().padding(innerPadding),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding),
+            contentAlignment = Alignment.Center
         ) {
             CircularProgressIndicator()
         }
@@ -138,16 +156,53 @@ fun LoadingScreen(navController: NavController) {
 }
 
 @Composable
-fun ErrorScreen(retryAction: () -> Unit, modifier: Modifier = Modifier) {
-    Column(
-        modifier = modifier,
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text("Failed to load")
-        Button(onClick = retryAction) {
-            Text("Retry")
+fun ErrorScreen(retryAction: () -> Unit, navController: NavController, modifier: Modifier = Modifier) {
+    val snackbarHostState = remember { SnackbarHostState() }
+    Scaffold(
+        snackbarHost = @Composable {
+            SnackbarHost(snackbarHostState) { snackbarData ->
+                Snackbar(
+                    snackbarData = snackbarData,
+                    shape = RoundedCornerShape(16.dp),
+                )
+            } },
+        content = { innerPadding ->
+            Box (
+                modifier = Modifier.padding(innerPadding)
+            ) {
+                val snackbarMessage = stringResource(R.string.no_internet_connection)
+                val actionLabel = stringResource(R.string.retry)
+                LaunchedEffect(
+                    remember { derivedStateOf { snackbarHostState } }
+                ) {
+                    when(
+                        snackbarHostState.showSnackbar(
+                        message = snackbarMessage,
+                        actionLabel = actionLabel,
+                        duration = SnackbarDuration.Indefinite,
+                            )
+                    ) {
+                        SnackbarResult.ActionPerformed -> {
+                            retryAction
+                            navController.navigate("search")
+                        }
+                        SnackbarResult.Dismissed -> TODO()
+                    }
+                }
+            }
         }
+    )
+    Box (
+        modifier = modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            imageVector = Icons.Filled.WifiOff,
+            contentDescription = stringResource(R.string.no_internet_connection),
+            modifier = Modifier
+                .size(64.dp)
+                .padding(end = 8.dp)
+        )
     }
 }
 
@@ -227,10 +282,15 @@ fun ArtworkCard(
 fun DisplayArtworkImage(artwork: Artwork, large: Boolean = true) {
     AsyncImage(
         model = ImageRequest.Builder(context = LocalContext.current)
-            .data( if (artwork.primaryImage.isNotBlank()
-                && (large || artwork.primaryImageSmall.isBlank())) artwork.primaryImage
-            else artwork.primaryImageSmall)
-            .crossfade(true).build(),
+            .data(
+                if (artwork.primaryImage.isNotBlank()
+                    && (large || artwork.primaryImageSmall.isBlank())) {
+                    artwork.primaryImage
+                }
+                else {
+                    artwork.primaryImageSmall
+                }
+            ).crossfade(true).build(),
         contentDescription = artwork.title,
         contentScale = ContentScale.Crop,
         modifier = Modifier.fillMaxWidth()
@@ -259,6 +319,40 @@ private fun SearchScreenPreview() {
     SearchScreen(
         searchViewModel = viewModel,
         objectListUiState = ObjectListUiState.Success(FakeDataSource.objectList),
+        navController = navController,
+        modifier = Modifier,
+        retryAction = { },
+    )
+}
+
+@Preview
+@Composable
+private fun LoadingSearchScreenPreview() {
+    val navController = rememberNavController()
+
+    val viewModel = SearchViewModel(
+        artworkRepository = FakeArtworkRepository()
+    )
+    SearchScreen(
+        searchViewModel = viewModel,
+        objectListUiState = ObjectListUiState.Loading,
+        navController = navController,
+        modifier = Modifier,
+        retryAction = { },
+    )
+}
+
+@Preview
+@Composable
+private fun ErrorScreenPreview() {
+    val navController = rememberNavController()
+
+    val viewModel = SearchViewModel(
+        artworkRepository = FakeArtworkRepository()
+    )
+    SearchScreen(
+        searchViewModel = viewModel,
+        objectListUiState = ObjectListUiState.Error(Exception()),
         navController = navController,
         modifier = Modifier,
         retryAction = { },

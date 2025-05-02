@@ -8,6 +8,8 @@ interface ArtworkDataSource {
     suspend fun getArtworks(query: String): ObjectList
 }
 
+class RequestFailedException(message: String) : Exception(message)
+
 class ArtworkDataSourceImpl (private val api: ArtworkApi) : ArtworkDataSource {
     override suspend fun getArtworks(query: String): ObjectList {
         val response = api.searchArtworks("\"" + query + "\"")
@@ -16,7 +18,7 @@ class ArtworkDataSourceImpl (private val api: ArtworkApi) : ArtworkDataSource {
         val artworks = if (response.isSuccessful && responseBody != null) {
             responseBody
         } else {
-            throw Exception("Request failed")
+            throw RequestFailedException("Could not find Artworks matching: $query")
         }
 
         return artworks
@@ -29,7 +31,7 @@ class ArtworkDataSourceImpl (private val api: ArtworkApi) : ArtworkDataSource {
         val artwork = if (response.isSuccessful && responseBody != null) {
             responseBody
         } else {
-            throw Exception("Artwork not found")
+            throw RequestFailedException("Could not find artwork with ID: $id")
         }
 
         return artwork

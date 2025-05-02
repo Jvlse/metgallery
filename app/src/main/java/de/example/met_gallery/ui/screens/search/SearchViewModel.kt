@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import coil.network.HttpException
 import de.example.met_gallery.model.Artwork
 import de.example.met_gallery.model.ObjectList
+import de.example.met_gallery.network.RequestFailedException
 import de.example.met_gallery.network.ArtworkRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -20,10 +21,20 @@ sealed interface ObjectListUiState {
     data class Success(
         val objects: ObjectList,
     ) : ObjectListUiState
+
+    object Loading : ObjectListUiState
+
     data class Error(
         val e: Exception
     ) : ObjectListUiState
-    object Loading : ObjectListUiState
+//
+//    data class LoadingCards (
+//        val objects: ObjectList,
+//    ) : ObjectListUiState
+//
+//    data class LoadingCardsError(
+//        val e: Exception
+//    ) : ObjectListUiState
 }
 
 open class SearchViewModel(
@@ -72,7 +83,7 @@ open class SearchViewModel(
                     }
                 },
                 onFailure = { exception ->
-                    if(exception.message == "Artwork not found") {
+                    if(exception is RequestFailedException) {
                         removeObjectFromList(id)
                         _errors.value += id
                     }

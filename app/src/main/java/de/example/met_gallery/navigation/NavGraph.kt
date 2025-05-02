@@ -18,7 +18,6 @@ fun AppNavigation(modifier: Modifier = Modifier) {
     val navController = rememberNavController()
     val detailViewModel = koinViewModel<DetailViewModel>()
     val searchViewModel = koinViewModel<SearchViewModel>()
-    searchViewModel.getArtworks(searchViewModel.getSearch())
 
     NavHost(
         navController = navController,

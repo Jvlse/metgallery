@@ -41,7 +41,13 @@ import de.example.met_gallery.model.Artwork
 import androidx.core.net.toUri
 import de.example.met_gallery.ui.screens.search.DisplayArtworkImage
 import androidx.compose.runtime.getValue
+import de.example.met_gallery.R
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
+import de.example.met_gallery.fake.FakeDataSource
+import de.example.met_gallery.ui.screens.search.LoadingScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -54,7 +60,7 @@ fun DetailScreen(
     Scaffold (
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Details") },
+                title = { Text(stringResource(R.string.details)) },
                 navigationIcon = {
                     IconButton(
                         onClick = {
@@ -62,7 +68,10 @@ fun DetailScreen(
                             onLeave
                         }
                     ) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.back)
+                        )
                     }
                 }
             )
@@ -95,8 +104,12 @@ fun ArtworkScreen(
                 DisplayArtworkImage(artwork)
             }
         }
-        Text("by ${artwork.constituents?.get(0)?.name ?: "Unknown"}")
-        // ${artwork.artistPrefix}
+        Text(
+            stringResource(
+                R.string.by,
+                artwork.constituents?.get(0)?.name ?: stringResource(R.string.unknown)
+            )
+        )
         ArtworkDetail(artwork)
     }
 }
@@ -112,11 +125,11 @@ fun ArtworkDetail(artwork: Artwork) {
                 append(", " + artwork.objectName)
             }
         )
-        Show("Department:", artwork.department)
-        Show("Culture:", artwork.culture)
-        Show("Made during:", artwork.period)
-        Show("Portfolio:", artwork.portfolio)
-        Show("Rights:", artwork.rightsAndReproduction)
+        Show(stringResource(R.string.department), artwork.department)
+        Show(stringResource(R.string.culture), artwork.culture)
+        Show(stringResource(R.string.made_during), artwork.period)
+        Show(stringResource(R.string.portfolio), artwork.portfolio)
+        Show(stringResource(R.string.rights), artwork.rightsAndReproduction)
 
         val context = LocalContext.current
         if (artwork.objectUrl.isNotBlank()) {
@@ -131,7 +144,7 @@ fun ArtworkDetail(artwork: Artwork) {
                         context.startActivity(intent)
                     }
                 ) {
-                    Text("Open MET Webpage")
+                    Text(stringResource(R.string.open_met_webpage))
                 }
             }
         }
@@ -161,7 +174,7 @@ fun PrintAdditionalImages(artwork: Artwork) {
             ) {
                 AsyncImage(
                     model = url,
-                    contentDescription = "Image",
+                    contentDescription = stringResource(R.string.more_images_of, artwork.title),
                     modifier = Modifier.fillMaxSize()
                 )
             }
@@ -207,4 +220,25 @@ fun Show(label: String, value: String) {
     if (value.isNotBlank()) {
         Text("$label $value")
     }
+}
+
+@Preview
+@Composable
+private fun LoadingDetailScreenPreview() {
+    val navController = rememberNavController()
+    LoadingScreen(
+        navController = navController
+    )
+}
+
+@Preview
+@Composable
+private fun DetailScreenPreview() {
+    val navController = rememberNavController()
+    val viewModel = DetailViewModel()
+    viewModel.setArtwork(FakeDataSource.artworkOne)
+    DetailScreen(
+        detailViewModel = viewModel,
+        navController = navController
+    )
 }
