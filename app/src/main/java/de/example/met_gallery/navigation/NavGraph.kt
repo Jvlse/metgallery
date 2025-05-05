@@ -21,9 +21,9 @@ fun AppNavigation(modifier: Modifier = Modifier) {
 
     NavHost(
         navController = navController,
-        startDestination = "search"
+        startDestination = Routes.SEARCH
     ) {
-        composable("search") {
+        composable(Routes.SEARCH) {
             SearchScreen(
                 searchViewModel = searchViewModel,
                 objectListUiState = searchViewModel.objectListUiState,
@@ -32,7 +32,7 @@ fun AppNavigation(modifier: Modifier = Modifier) {
             )
         }
         composable(
-            route = "detail/{objectId}",
+            route = Routes.DETAIL,
             arguments = listOf(
                 navArgument("objectId") { type = NavType.IntType }
             )
@@ -46,7 +46,7 @@ fun AppNavigation(modifier: Modifier = Modifier) {
                     navController = navController,
                 )
             } else {
-                navController.navigate("search")
+                navController.navigate(Routes.SEARCH)
             }
         }
     }

@@ -18,23 +18,13 @@ import okio.IOException
 import java.lang.Exception
 
 sealed interface ObjectListUiState {
+    object Loading : ObjectListUiState
     data class Success(
         val objects: ObjectList,
     ) : ObjectListUiState
-
-    object Loading : ObjectListUiState
-
     data class Error(
         val e: Exception
     ) : ObjectListUiState
-//
-//    data class LoadingCards (
-//        val objects: ObjectList,
-//    ) : ObjectListUiState
-//
-//    data class LoadingCardsError(
-//        val e: Exception
-//    ) : ObjectListUiState
 }
 
 open class SearchViewModel(
@@ -44,8 +34,8 @@ open class SearchViewModel(
     var objectListUiState: ObjectListUiState by mutableStateOf(ObjectListUiState.Loading)
         private set
 
-    private val _artworks: MutableStateFlow<Set<Artwork>> = MutableStateFlow(emptySet())
-    val artworks: StateFlow<Set<Artwork>> = _artworks.asStateFlow()
+    private val _artworks: MutableStateFlow<Map<Int, Artwork>> = MutableStateFlow(emptyMap())
+    val artworks: StateFlow<Map<Int, Artwork>> = _artworks.asStateFlow()
 
     private val _search: MutableStateFlow<String> = MutableStateFlow("")
     val search: StateFlow<String> = _search.asStateFlow()
@@ -77,7 +67,7 @@ open class SearchViewModel(
                 onSuccess = { artwork ->
                     if(artwork.primaryImage.isNotBlank()
                         || artwork.primaryImageSmall.isNotBlank()) {
-                        _artworks.value += artwork
+                        _artworks.value += Pair(artwork.id, artwork)
                     } else {
                         removeObjectFromList(id)
                     }
@@ -93,7 +83,7 @@ open class SearchViewModel(
     }
 
     fun getLocalArtworkById(id: Int): Artwork? {
-        return _artworks.value.firstOrNull { it.id == id }
+        return _artworks.value.getOrElse(id, { null })
     }
 
     fun setSearch(search : String) {

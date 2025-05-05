@@ -62,6 +62,7 @@ import de.example.met_gallery.model.Artwork
 import de.example.met_gallery.model.ObjectList
 import de.example.met_gallery.fake.FakeArtworkRepository
 import de.example.met_gallery.fake.FakeDataSource
+import de.example.met_gallery.navigation.Routes
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -90,8 +91,11 @@ fun SearchScreen(
                 inputField = {
                     SearchBarDefaults.InputField(
                         query = text,
-                        onQueryChange = { searchViewModel.setSearch(it) },
-                        onSearch = { searchViewModel.getArtworks(text) },
+                        onQueryChange = {
+                            searchViewModel.setSearch(it)
+                            searchViewModel.getArtworks(searchViewModel.getSearch())
+                                        },
+                        onSearch = { searchViewModel.getArtworks(searchViewModel.getSearch()) },
                         expanded = false,
                         onExpandedChange = { },
                         placeholder = { Text(stringResource(R.string.search_keyword)) },
@@ -184,7 +188,7 @@ fun ErrorScreen(retryAction: () -> Unit, navController: NavController, modifier:
                     ) {
                         SnackbarResult.ActionPerformed -> {
                             retryAction
-                            navController.navigate("search")
+                            navController.navigate(Routes.SEARCH)
                         }
                         SnackbarResult.Dismissed -> TODO()
                     }
@@ -226,7 +230,7 @@ fun ArtworkGrid(
     ) {
         val ids = objectList.objectIds
         itemsIndexed(ids, key = { index, id -> id }) { index, id ->
-            val artwork = artworks.firstOrNull { it.id == ids[index] }
+            val artwork = artworks[ids[index]]
             Box (
                 modifier = Modifier
                     .height(200.dp)
@@ -242,6 +246,7 @@ fun ArtworkGrid(
                     LoadingCard()
                     LaunchedEffect(
                         remember { derivedStateOf { gridState } },
+                        remember { artworks }
                     ) {
                         searchViewModel.getArtworkById(ids[index])
                     }
@@ -270,7 +275,7 @@ fun ArtworkCard(
         ) {
             Surface (
                 modifier = Modifier.fillMaxSize(),
-                onClick = { navController.navigate("detail/${artwork.id}") },
+                onClick = { navController.navigate(Routes.detailsScreen(artwork.id)) },
             ) {
                 DisplayArtworkImage(artwork = artwork, large = false)
             }

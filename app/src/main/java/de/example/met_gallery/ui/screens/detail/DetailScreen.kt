@@ -180,39 +180,6 @@ fun PrintAdditionalImages(artwork: Artwork) {
             }
         }
     }
-        /*
-        val images = (
-            listOf( artwork.primaryImage ) + artwork.additionalImages
-            ).filter { it.isNotBlank() }
-
-    val carouselState = rememberCarouselState { images.size }
-
-    HorizontalMultiBrowseCarousel(
-        state = carouselState,
-        preferredItemWidth = 800.dp,
-        itemSpacing = 8.dp,
-        contentPadding = PaddingValues(horizontal = 16.dp),
-        flingBehavior = CarouselDefaults.singleAdvanceFlingBehavior(carouselState),
-        modifier = Modifier.clip(RoundedCornerShape(16.dp)).heightIn(min = 300.dp),
-    ) { index ->
-        Card(
-            modifier = Modifier
-                .fillMaxSize(),
-            shape = MaterialTheme.shapes.large,
-            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
-        ) {
-            Surface (
-                onClick = { /* Open Image Fullscreen */ }
-            ) {
-                AsyncImage(
-                    model = images[index],
-                    contentDescription = "Image",
-                    modifier = Modifier.fillMaxSize()
-                )
-            }
-        }
-    }
-         */
 }
 
 @Composable
