@@ -5,31 +5,23 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import coil.network.HttpException
 import de.example.met_gallery.model.Artwork
 import de.example.met_gallery.model.ObjectList
 import de.example.met_gallery.network.RequestFailedException
 import de.example.met_gallery.network.ArtworkRepository
+import de.example.met_gallery.network.NoArtworkFoundException
+import de.example.met_gallery.network.SearchArtworksUseCase
+import de.example.met_gallery.ui.screens.search.state.ObjectListUiState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import okio.IOException
-import java.lang.Exception
 
-sealed interface ObjectListUiState {
-    object Loading : ObjectListUiState
-    data class Success(
-        val objects: ObjectList,
-    ) : ObjectListUiState
-    data class Error(
-        val e: Exception
-    ) : ObjectListUiState
-}
-
-open class SearchViewModel(
+internal class SearchViewModel (
     private val artworkRepository: ArtworkRepository,
-    // searchArtworks: SearchArtworksUseCase
+    // private val navigator: NavController,
+    searchArtworks: SearchArtworksUseCase
 ) : ViewModel() {
     var objectListUiState: ObjectListUiState by mutableStateOf(ObjectListUiState.Loading)
         private set
@@ -51,11 +43,46 @@ open class SearchViewModel(
                 )
             } catch (e: IOException) {
                 ObjectListUiState.Error(e)
-            } catch (e: HttpException) {
+            } catch (e: NoArtworkFoundException) {
+                ObjectListUiState.Error(e)
+            } catch (e: Exception) {
                 ObjectListUiState.Error(e)
             }
         }
     }
+
+//    init {
+//        viewModelScope.launch {
+//            search.collect {
+//
+//            }
+//        }
+//    }
+//
+//    val uiState = search.transform { query ->
+//        emit(ObjectListUiState.Loading)
+//        val state = try {
+//            ObjectListUiState.Success(
+//                artworkRepository.getArtworks(query)
+//            )
+//        } catch (e: IOException) {
+//            ObjectListUiState.Error(e)
+//        } catch (e: NoArtworkFoundException) {
+//            ObjectListUiState.Error(e)
+//        } catch (e: Exception) {
+//            ObjectListUiState.Error(e)
+//        }
+//        emit(state)
+//    }.combine(artworks) { uiState, artworkState ->
+//        if (uiState is ObjectListUiState.Success) {
+//            ObjectListUiState.Success(
+//                ObjectList(
+//                    uiState.objects.total,
+//                    artworkState
+//                )
+//            )
+//        }
+//    }
 
     fun getArtworkById(id: Int) {
         // already fetched
@@ -67,6 +94,19 @@ open class SearchViewModel(
                 onSuccess = { artwork ->
                     if(artwork.primaryImage.isNotBlank()
                         || artwork.primaryImageSmall.isNotBlank()) {
+//                        objectListUiState = try {
+//                            val updatedMap = (objectListUiState as ObjectListUiState.Success)
+//                                .objects.artworks.filter {it.key == id}
+//                            updatedMap.plus(Pair(id, artwork))
+//                            ObjectListUiState.Success(
+//                                ObjectList(
+//                                    (objectListUiState as ObjectListUiState.Success).objects.total,
+//                                    updatedMap
+//                                )
+////                            )
+//                    } catch (e: Exception) {
+//                    ObjectListUiState.Error(e)
+//                }
                         _artworks.value += Pair(artwork.id, artwork)
                     } else {
                         removeObjectFromList(id)
@@ -81,9 +121,30 @@ open class SearchViewModel(
             )
         }
     }
+    /*
+                    if(artwork.primaryImage.isNotBlank()
+                        || artwork.primaryImageSmall.isNotBlank()) {
+                        objectListUiState = try {
+                            val updatedMap = (objectListUiState as ObjectListUiState.Success)
+                                .objects.artworks.filter {it.key == id}
+                            updatedMap.plus(Pair(id, artwork))
+                            ObjectListUiState.Success(
+                                ObjectList(
+                                    (objectListUiState as ObjectListUiState.Success).objects.total,
+                                    updatedMap
+                                )
+                            )
+                        } catch (e: Exception) {
+                            ObjectListUiState.Error(e)
+                        }
+                    } else {
+                        removeObjectFromList(id)
+                    }
+     */
 
     fun getLocalArtworkById(id: Int): Artwork? {
-        return _artworks.value.getOrElse(id, { null })
+        return _artworks.value.getOrElse(id) { null }
+    // (objectListUiState as ObjectListUiState.Success).objects.artworks.get(id)
     }
 
     fun setSearch(search : String) {
@@ -106,4 +167,11 @@ open class SearchViewModel(
             )
         }
     }
+
+//    fun onEvent(event: SearchScreenEvent) {
+//        when (event) {
+//            SearchScreenEvent.NavigateToDetail -> navigator.navigateUp()
+//            SearchScreenEvent.Refresh -> TODO()
+//        }
+//    }
 }

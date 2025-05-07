@@ -2,9 +2,10 @@ package de.example.met_gallery
 
 import de.example.met_gallery.fake.FakeArtworkRepository
 import de.example.met_gallery.fake.FakeDataSource
+import de.example.met_gallery.network.SearchArtworksUseCase
 import de.example.met_gallery.rules.TestDispatcherRule
-import de.example.met_gallery.ui.screens.search.ObjectListUiState
 import de.example.met_gallery.ui.screens.search.SearchViewModel
+import de.example.met_gallery.ui.screens.search.state.ObjectListUiState
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import org.junit.Assert.*
@@ -14,8 +15,11 @@ class SearchViewModelTest {
     @get:Rule
     val testDispatcher = TestDispatcherRule()
 
+    val repository = FakeArtworkRepository()
+
     private val viewModel = SearchViewModel(
-        artworkRepository = FakeArtworkRepository()
+        artworkRepository = repository,
+        searchArtworks = SearchArtworksUseCase(repository)
     )
 
     @Test

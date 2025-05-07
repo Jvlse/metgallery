@@ -26,7 +26,6 @@ fun AppNavigation(modifier: Modifier = Modifier) {
         composable(Routes.SEARCH) {
             SearchScreen(
                 searchViewModel = searchViewModel,
-                objectListUiState = searchViewModel.objectListUiState,
                 navController = navController,
                 modifier = modifier,
             )

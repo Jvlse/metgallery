@@ -2,6 +2,7 @@ package de.example.met_gallery.network
 
 import de.example.met_gallery.model.Artwork
 import de.example.met_gallery.model.ObjectList
+import de.example.met_gallery.model.toEntity
 
 interface ArtworkDataSource {
     suspend fun getArtworkById(id: Int): Artwork
@@ -9,16 +10,20 @@ interface ArtworkDataSource {
 }
 
 class RequestFailedException(message: String) : Exception(message)
+class NoArtworkFoundException(message: String) : Exception(message)
 
 class ArtworkDataSourceImpl (private val api: ArtworkApi) : ArtworkDataSource {
     override suspend fun getArtworks(query: String): ObjectList {
         val response = api.searchArtworks("\"" + query + "\"")
         val responseBody = response.body()
 
-        val artworks = if (response.isSuccessful && responseBody != null) {
-            responseBody
+        val artworks =
+            if (response.isSuccessful
+                && responseBody != null
+                && responseBody.objectIds != null) {
+            responseBody.toEntity()
         } else {
-            throw RequestFailedException("Could not find Artworks matching: $query")
+            throw NoArtworkFoundException("Could not find Artworks matching: $query")
         }
 
         return artworks

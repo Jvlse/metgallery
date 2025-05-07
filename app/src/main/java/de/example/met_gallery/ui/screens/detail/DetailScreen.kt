@@ -47,7 +47,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import de.example.met_gallery.fake.FakeDataSource
-import de.example.met_gallery.ui.screens.search.LoadingScreen
+import de.example.met_gallery.ui.screens.common.LoadingScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -163,9 +163,8 @@ fun PrintAdditionalImages(artwork: Artwork) {
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        (listOf(
-            artwork.primaryImage,
-        ) + artwork.additionalImages).filter { it.isNotBlank() }.forEach { url ->
+        (artwork.additionalImages + artwork.primaryImage).filter { it.isNotBlank() }
+            .forEach { url ->
             Card(
                 modifier = Modifier
                     .fillMaxSize(),

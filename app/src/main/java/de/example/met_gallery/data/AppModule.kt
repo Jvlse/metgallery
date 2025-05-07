@@ -5,6 +5,7 @@ import de.example.met_gallery.network.ArtworkDataSource
 import de.example.met_gallery.network.ArtworkDataSourceImpl
 import de.example.met_gallery.network.ArtworkRepository
 import de.example.met_gallery.network.ArtworkRepositoryImpl
+import de.example.met_gallery.network.SearchArtworksUseCase
 import de.example.met_gallery.ui.screens.detail.DetailViewModel
 import de.example.met_gallery.ui.screens.search.SearchViewModel
 import retrofit2.Retrofit
@@ -19,10 +20,10 @@ val appModule = module {
 
     viewModel {
         SearchViewModel (
-            artworkRepository = get()
+            artworkRepository = get(),
+            searchArtworks = SearchArtworksUseCase(get())
         )
     }
-    viewModelOf(::SearchViewModel)
 
     viewModelOf(::DetailViewModel)
 

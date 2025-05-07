@@ -2,6 +2,7 @@ package de.example.met_gallery.fake
 
 import de.example.met_gallery.model.Artwork
 import de.example.met_gallery.model.Constituent
+import de.example.met_gallery.model.ApiObjectList
 import de.example.met_gallery.model.ObjectList
 
 object FakeDataSource {
@@ -29,7 +30,7 @@ object FakeDataSource {
 
     val blank = ""
 
-    val objectList = ObjectList(
+    val apiObjectList = ApiObjectList(
         total = 3,
         objectIds = listOf(idOne, idTwo, idThree)
     )
@@ -113,5 +114,11 @@ object FakeDataSource {
         portfolio = blank,
         rightsAndReproduction = blank,
         objectUrl = blank
+    )
+
+    val objectList = ObjectList(
+        total = 3,
+        objectIds = listOf(idOne, idTwo, idThree)
+    //artworks = mapOf(Pair(idOne,artworkOne),Pair(idTwo,artworkTwo),Pair(idThree,artworkNoUrl))
     )
 }

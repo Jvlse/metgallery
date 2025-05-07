@@ -4,30 +4,23 @@ import androidx.compose.runtime.getValue
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.WifiOff
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
@@ -35,14 +28,8 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.SearchBar
 import androidx.compose.material3.SearchBarDefaults
-import androidx.compose.material3.Snackbar
-import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -59,18 +46,25 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import de.example.met_gallery.R
 import de.example.met_gallery.model.Artwork
-import de.example.met_gallery.model.ObjectList
 import de.example.met_gallery.fake.FakeArtworkRepository
 import de.example.met_gallery.fake.FakeDataSource
+import de.example.met_gallery.model.ObjectList
 import de.example.met_gallery.navigation.Routes
+import de.example.met_gallery.network.NoArtworkFoundException
+import de.example.met_gallery.network.SearchArtworksUseCase
+import de.example.met_gallery.ui.screens.common.LoadingCard
+import de.example.met_gallery.ui.screens.common.LoadingScreen
+import de.example.met_gallery.ui.screens.common.NoArtworkFoundErrorScreen
+import de.example.met_gallery.ui.screens.common.NoInternetErrorScreen
+import de.example.met_gallery.ui.screens.search.state.ObjectListUiState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SearchScreen(
+internal fun SearchScreen(
     searchViewModel: SearchViewModel,
-    objectListUiState: ObjectListUiState,
     navController: NavController,
     modifier: Modifier = Modifier,
+    objectListUiState: ObjectListUiState = searchViewModel.objectListUiState,
     contentPadding: PaddingValues = PaddingValues(0.dp),
     retryAction: () -> Unit = { searchViewModel.getArtworks(searchViewModel.getSearch());  },
 ) {
@@ -125,93 +119,29 @@ fun SearchScreen(
                         ),
                     navController = navController,
                 )
-            is ObjectListUiState.Error -> ErrorScreen(retryAction, navController = navController, modifier.fillMaxSize())
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun LoadingScreen(navController: NavController) {
-    Scaffold (
-        topBar = {
-            CenterAlignedTopAppBar(
-                title = { Text(stringResource(R.string.details)) },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.back)
+            is ObjectListUiState.Error ->
+                when (objectListUiState.e) {
+                    is NoArtworkFoundException ->
+                        NoArtworkFoundErrorScreen(
+                            e = objectListUiState.e,
+                            retryAction = retryAction,
+                            navController = navController,
+                            modifier.fillMaxSize()
                         )
-                    }
+                    else ->
+                        NoInternetErrorScreen(
+                            e = objectListUiState.e,
+                            retryAction = retryAction,
+                            navController = navController,
+                            modifier.fillMaxSize()
+                        )
                 }
-            )
-        },
-    ) { innerPadding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding),
-            contentAlignment = Alignment.Center
-        ) {
-            CircularProgressIndicator()
         }
     }
 }
 
 @Composable
-fun ErrorScreen(retryAction: () -> Unit, navController: NavController, modifier: Modifier = Modifier) {
-    val snackbarHostState = remember { SnackbarHostState() }
-    Scaffold(
-        snackbarHost = @Composable {
-            SnackbarHost(snackbarHostState) { snackbarData ->
-                Snackbar(
-                    snackbarData = snackbarData,
-                    shape = RoundedCornerShape(16.dp),
-                )
-            } },
-        content = { innerPadding ->
-            Box (
-                modifier = Modifier.padding(innerPadding)
-            ) {
-                val snackbarMessage = stringResource(R.string.no_internet_connection)
-                val actionLabel = stringResource(R.string.retry)
-                LaunchedEffect(
-                    remember { derivedStateOf { snackbarHostState } }
-                ) {
-                    when(
-                        snackbarHostState.showSnackbar(
-                        message = snackbarMessage,
-                        actionLabel = actionLabel,
-                        duration = SnackbarDuration.Indefinite,
-                            )
-                    ) {
-                        SnackbarResult.ActionPerformed -> {
-                            retryAction
-                            navController.navigate(Routes.SEARCH)
-                        }
-                        SnackbarResult.Dismissed -> TODO()
-                    }
-                }
-            }
-        }
-    )
-    Box (
-        modifier = modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Icon(
-            imageVector = Icons.Filled.WifiOff,
-            contentDescription = stringResource(R.string.no_internet_connection),
-            modifier = Modifier
-                .size(64.dp)
-                .padding(end = 8.dp)
-        )
-    }
-}
-
-@Composable
-fun ArtworkGrid(
+internal fun ArtworkGrid(
     searchViewModel: SearchViewModel,
     objectList: ObjectList,
     modifier: Modifier = Modifier,
@@ -302,24 +232,15 @@ fun DisplayArtworkImage(artwork: Artwork, large: Boolean = true) {
     )
 }
 
-@Composable
-fun LoadingCard() {
-    Row (
-        horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.fillMaxSize()
-    ) {
-        CircularProgressIndicator()
-    }
-}
-
 @Preview
 @Composable
 private fun SearchScreenPreview() {
     val navController = rememberNavController()
+    val repository = FakeArtworkRepository()
 
     val viewModel = SearchViewModel(
-        artworkRepository = FakeArtworkRepository()
+        artworkRepository = repository,
+        searchArtworks = SearchArtworksUseCase(repository)
     )
     SearchScreen(
         searchViewModel = viewModel,
@@ -334,9 +255,11 @@ private fun SearchScreenPreview() {
 @Composable
 private fun LoadingSearchScreenPreview() {
     val navController = rememberNavController()
+    val repository = FakeArtworkRepository()
 
     val viewModel = SearchViewModel(
-        artworkRepository = FakeArtworkRepository()
+        artworkRepository = repository,
+        searchArtworks = SearchArtworksUseCase(repository)
     )
     SearchScreen(
         searchViewModel = viewModel,
@@ -351,9 +274,11 @@ private fun LoadingSearchScreenPreview() {
 @Composable
 private fun ErrorScreenPreview() {
     val navController = rememberNavController()
+    val repository = FakeArtworkRepository()
 
     val viewModel = SearchViewModel(
-        artworkRepository = FakeArtworkRepository()
+        artworkRepository = repository,
+        searchArtworks = SearchArtworksUseCase(repository)
     )
     SearchScreen(
         searchViewModel = viewModel,

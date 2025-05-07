@@ -6,7 +6,7 @@ import de.example.met_gallery.data.DefaultAppContainer
 import de.example.met_gallery.data.appModule
 import org.koin.core.context.startKoin
 
-class MetGalleryApplication : Application() {
+class App : Application() {
     lateinit var container: AppContainer
     override fun onCreate() {
         super.onCreate()
