@@ -39,13 +39,14 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import de.example.met_gallery.model.Artwork
 import androidx.core.net.toUri
-import de.example.met_gallery.ui.screens.search.DisplayArtworkImage
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.layout.ContentScale
 import de.example.met_gallery.R
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import de.example.met_gallery.fake.FakeDataSource
 import de.example.met_gallery.ui.screens.common.LoadingScreen
 
@@ -101,7 +102,7 @@ fun ArtworkScreen(
                     .heightIn(max = 500.dp)
                     .verticalScroll(rememberScrollState())
             ) {
-                DisplayArtworkImage(artwork)
+                DisplayArtworkWithPlaceholder(artwork)
             }
         }
         Text(
@@ -112,6 +113,21 @@ fun ArtworkScreen(
         )
         ArtworkDetail(artwork)
     }
+}
+
+@Composable
+fun DisplayArtworkWithPlaceholder(artwork: Artwork) {
+    AsyncImage(
+        model = ImageRequest.Builder(context = LocalContext.current)
+            .data(
+                artwork.primaryImage.ifBlank {
+                    artwork.primaryImageSmall
+                }
+            ).crossfade(true).build(),
+        contentDescription = artwork.title,
+        contentScale = ContentScale.Crop,
+        modifier = Modifier.fillMaxWidth()
+    )
 }
 
 @Composable

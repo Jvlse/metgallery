@@ -50,12 +50,10 @@ import de.example.met_gallery.fake.FakeArtworkRepository
 import de.example.met_gallery.fake.FakeDataSource
 import de.example.met_gallery.model.ObjectList
 import de.example.met_gallery.navigation.Routes
-import de.example.met_gallery.network.NoArtworkFoundException
 import de.example.met_gallery.network.SearchArtworksUseCase
+import de.example.met_gallery.ui.screens.common.ErrorScreen
 import de.example.met_gallery.ui.screens.common.LoadingCard
 import de.example.met_gallery.ui.screens.common.LoadingScreen
-import de.example.met_gallery.ui.screens.common.NoArtworkFoundErrorScreen
-import de.example.met_gallery.ui.screens.common.NoInternetErrorScreen
 import de.example.met_gallery.ui.screens.search.state.ObjectListUiState
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -66,12 +64,12 @@ internal fun SearchScreen(
     modifier: Modifier = Modifier,
     objectListUiState: ObjectListUiState = searchViewModel.objectListUiState,
     contentPadding: PaddingValues = PaddingValues(0.dp),
-    retryAction: () -> Unit = { searchViewModel.getArtworks(searchViewModel.getSearch());  },
+    retryAction: () -> Unit = { searchViewModel.getArtworks();  },
 ) {
     LaunchedEffect(
         remember { derivedStateOf { objectListUiState } }
     ) {
-        searchViewModel.getArtworks(searchViewModel.getSearch())
+        searchViewModel.getArtworks()
     }
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
     val text by searchViewModel.search.collectAsState()
@@ -87,9 +85,9 @@ internal fun SearchScreen(
                         query = text,
                         onQueryChange = {
                             searchViewModel.setSearch(it)
-                            searchViewModel.getArtworks(searchViewModel.getSearch())
+                            searchViewModel.getArtworks()
                                         },
-                        onSearch = { searchViewModel.getArtworks(searchViewModel.getSearch()) },
+                        onSearch = { searchViewModel.getArtworks() },
                         expanded = false,
                         onExpandedChange = { },
                         placeholder = { Text(stringResource(R.string.search_keyword)) },
@@ -119,23 +117,13 @@ internal fun SearchScreen(
                         ),
                     navController = navController,
                 )
-            is ObjectListUiState.Error ->
-                when (objectListUiState.e) {
-                    is NoArtworkFoundException ->
-                        NoArtworkFoundErrorScreen(
-                            e = objectListUiState.e,
-                            retryAction = retryAction,
-                            navController = navController,
-                            modifier.fillMaxSize()
-                        )
-                    else ->
-                        NoInternetErrorScreen(
-                            e = objectListUiState.e,
-                            retryAction = retryAction,
-                            navController = navController,
-                            modifier.fillMaxSize()
-                        )
-                }
+            is ObjectListUiState.Error -> {
+                ErrorScreen(
+                    objectListUiState = objectListUiState,
+                    retryAction = retryAction,
+                    navController = navController
+                )
+            }
         }
     }
 }
@@ -207,23 +195,19 @@ fun ArtworkCard(
                 modifier = Modifier.fillMaxSize(),
                 onClick = { navController.navigate(Routes.detailsScreen(artwork.id)) },
             ) {
-                DisplayArtworkImage(artwork = artwork, large = false)
+                DisplayArtworkImage(artwork)
             }
         }
     }
 }
 
 @Composable
-fun DisplayArtworkImage(artwork: Artwork, large: Boolean = true) {
+fun DisplayArtworkImage(artwork: Artwork) {
     AsyncImage(
         model = ImageRequest.Builder(context = LocalContext.current)
             .data(
-                if (artwork.primaryImage.isNotBlank()
-                    && (large || artwork.primaryImageSmall.isBlank())) {
+                artwork.primaryImageSmall.ifBlank {
                     artwork.primaryImage
-                }
-                else {
-                    artwork.primaryImageSmall
                 }
             ).crossfade(true).build(),
         contentDescription = artwork.title,

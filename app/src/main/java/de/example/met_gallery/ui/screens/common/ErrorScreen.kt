@@ -25,13 +25,14 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import de.example.met_gallery.R
 import de.example.met_gallery.navigation.Routes
+import de.example.met_gallery.network.NoArtworkFoundException
+import de.example.met_gallery.ui.screens.search.state.ObjectListUiState
 
 @Composable
-internal fun NoArtworkFoundErrorScreen(
-    e: Exception,
+fun ErrorScreen(
+    objectListUiState: ObjectListUiState.Error,
     retryAction: () -> Unit,
-    navController: NavController,
-    modifier: Modifier = Modifier
+    navController: NavController
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     Scaffold(
@@ -46,24 +47,17 @@ internal fun NoArtworkFoundErrorScreen(
             Box (
                 modifier = Modifier.padding(innerPadding)
             ) {
-                val snackbarMessage = stringResource(R.string.no_internet_connection)
-                val actionLabel = stringResource(R.string.retry)
-                LaunchedEffect(
-                    remember { derivedStateOf { snackbarHostState } }
-                ) {
-                    when(
-                        snackbarHostState.showSnackbar(
-                            message = snackbarMessage,
-                            actionLabel = actionLabel,
-                            duration = SnackbarDuration.Indefinite,
+                when (objectListUiState.e) {
+                    is NoArtworkFoundException ->
+                        NoArtworkFoundErrorScreen(
+                            snackbarHostState = snackbarHostState
                         )
-                    ) {
-                        SnackbarResult.ActionPerformed -> {
-                            retryAction
-                            navController.navigate(Routes.SEARCH)
-                        }
-                        SnackbarResult.Dismissed -> TODO()
-                    }
+                    else ->
+                        NoInternetErrorScreen(
+                            retryAction = retryAction,
+                            navController = navController,
+                            snackbarHostState = snackbarHostState
+                        )
                 }
             }
         }
@@ -71,47 +65,43 @@ internal fun NoArtworkFoundErrorScreen(
 }
 
 @Composable
+fun NoArtworkFoundErrorScreen(
+    snackbarHostState: SnackbarHostState,
+) {
+    val snackbarMessage = stringResource(R.string.no_artworks_found_matching_the_search)
+    LaunchedEffect(
+        remember { derivedStateOf { snackbarHostState } }
+    ) {
+        snackbarHostState.showSnackbar(
+            message = snackbarMessage,
+            duration = SnackbarDuration.Short,
+        )
+    }
+}
+
+@Composable
 fun NoInternetErrorScreen(
-    e: Exception,
     retryAction: () -> Unit,
+    snackbarHostState: SnackbarHostState,
     navController: NavController,
     modifier: Modifier = Modifier
 ) {
-    val snackbarHostState = remember { SnackbarHostState() }
-    Scaffold(
-        snackbarHost = @Composable {
-            SnackbarHost(snackbarHostState) { snackbarData ->
-                Snackbar(
-                    snackbarData = snackbarData,
-                    shape = RoundedCornerShape(16.dp),
-                )
-            } },
-        content = { innerPadding ->
-            Box (
-                modifier = Modifier.padding(innerPadding)
-            ) {
-                val snackbarMessage = stringResource(R.string.no_internet_connection)
-                val actionLabel = stringResource(R.string.retry)
-                LaunchedEffect(
-                    remember { derivedStateOf { snackbarHostState } }
-                ) {
-                    when(
-                        snackbarHostState.showSnackbar(
-                            message = snackbarMessage,
-                            actionLabel = actionLabel,
-                            duration = SnackbarDuration.Indefinite,
-                        )
-                    ) {
-                        SnackbarResult.ActionPerformed -> {
-                            retryAction
-                            navController.navigate(Routes.SEARCH)
-                        }
-                        SnackbarResult.Dismissed -> TODO()
-                    }
-                }
-            }
+    val snackbarMessage = stringResource(R.string.no_internet_connection)
+    val actionLabel = stringResource(R.string.retry)
+    LaunchedEffect(
+        remember { derivedStateOf { snackbarHostState } }
+    ) {
+        if (
+            snackbarHostState.showSnackbar(
+                message = snackbarMessage,
+                actionLabel = actionLabel,
+                duration = SnackbarDuration.Indefinite,
+            ) == SnackbarResult.ActionPerformed
+        ) {
+            retryAction
+            navController.navigate(Routes.SEARCH)
         }
-    )
+    }
     Box (
         modifier = modifier.fillMaxSize(),
         contentAlignment = Alignment.Center

@@ -34,16 +34,16 @@ internal class SearchViewModel (
 
     private val _errors: MutableStateFlow<Set<Int>> = MutableStateFlow(emptySet())
 
-    fun getArtworks(query: String? = null) {
+    fun getArtworks() {
         viewModelScope.launch {
             objectListUiState = ObjectListUiState.Loading
             objectListUiState = try {
                 ObjectListUiState.Success(
-                    artworkRepository.getArtworks(query ?: "")
+                    artworkRepository.getArtworks(_search.value)
                 )
-            } catch (e: IOException) {
-                ObjectListUiState.Error(e)
             } catch (e: NoArtworkFoundException) {
+                ObjectListUiState.Error(e)
+            } catch (e: IOException) {
                 ObjectListUiState.Error(e)
             } catch (e: Exception) {
                 ObjectListUiState.Error(e)
@@ -103,7 +103,7 @@ internal class SearchViewModel (
 //                                    (objectListUiState as ObjectListUiState.Success).objects.total,
 //                                    updatedMap
 //                                )
-////                            )
+//                            )
 //                    } catch (e: Exception) {
 //                    ObjectListUiState.Error(e)
 //                }
@@ -158,11 +158,11 @@ internal class SearchViewModel (
     // filter ID out of list so that Card doesn't get rendered in UI
     fun removeObjectFromList(id: Int) {
         if(objectListUiState is ObjectListUiState.Success) {
+            val objectListSuccess = (objectListUiState as ObjectListUiState.Success)
             objectListUiState = ObjectListUiState.Success(
                 ObjectList(
-                    (objectListUiState as ObjectListUiState.Success).objects.total,
-                    (objectListUiState as ObjectListUiState.Success)
-                        .objects.objectIds.filter { it != id }
+                    objectListSuccess.objects.total,
+                    objectListSuccess.objects.objectIds.filter { it != id }
                 )
             )
         }

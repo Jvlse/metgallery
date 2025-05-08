@@ -3,7 +3,7 @@
     <string name="search_keyword">Stichwörter suchen</string>
     <string name="back">Zurück</string>
     <string name="details">Details</string>
-    <string name="no_internet_connection">Keine Internetverbindung</string>
+    <string name="no_internet_connection">Überprüfe deine Internetverbindung</string>
     <string name="retry">Erneut versuchen</string>
     <string name="department">Abteilung:</string>
     <string name="culture">Kultur:</string>
@@ -14,4 +14,5 @@
     <string name="more_images_of">Mehr Bilder von %1$s</string>
     <string name="by">von %1$s</string>
     <string name="unknown">Unbekannt</string>
+    <string name="no_artworks_found_matching_the_search">Keine Kunstwerke passend zur Suche gefunden</string>
 </resources>
