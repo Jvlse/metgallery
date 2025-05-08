@@ -48,6 +48,7 @@ import coil.request.ImageRequest
 import de.example.met_gallery.R
 import de.example.met_gallery.model.Artwork
 import de.example.met_gallery.fake.FakeArtworkRepository
+import de.example.met_gallery.fake.FakeDataSource
 import de.example.met_gallery.model.ObjectList
 import de.example.met_gallery.navigation.Routes
 import de.example.met_gallery.network.NoArtworkFoundException
@@ -67,8 +68,7 @@ internal fun SearchScreen(
     contentPadding: PaddingValues = PaddingValues(0.dp),
     retryAction: () -> Unit = { searchViewModel.getArtworks() },
 ) {
-    val uiState by searchViewModel
-        .uiState.collectAsState(ObjectListUiState.Loading)
+    val uiState by searchViewModel.uiState.collectAsState()
     LaunchedEffect(
         remember { derivedStateOf { uiState } }
     ) {
@@ -210,6 +210,7 @@ fun DisplayArtworkImage(artwork: Artwork) {
     )
 }
 
+@SuppressLint("StateFlowValueCalledInComposition")
 @Preview
 @Composable
 private fun SearchScreenPreview() {
@@ -220,15 +221,17 @@ private fun SearchScreenPreview() {
         artworkRepository = repository,
         searchArtworks = SearchArtworksUseCase(repository)
     )
+    viewModel.uiState.value = ObjectListUiState.Success(FakeDataSource.objectList)
+
     SearchScreen(
         searchViewModel = viewModel,
-        // objectListUiState = ObjectListUiState.Success(FakeDataSource.objectList),
         navController = navController,
         modifier = Modifier,
         retryAction = { },
     )
 }
 
+@SuppressLint("StateFlowValueCalledInComposition")
 @Preview
 @Composable
 private fun LoadingSearchScreenPreview() {
@@ -239,9 +242,10 @@ private fun LoadingSearchScreenPreview() {
         artworkRepository = repository,
         searchArtworks = SearchArtworksUseCase(repository)
     )
+    viewModel.uiState.value = ObjectListUiState.Loading
+
     SearchScreen(
         searchViewModel = viewModel,
-        // objectListUiState = ObjectListUiState.Loading,
         navController = navController,
         modifier = Modifier,
         retryAction = { },
