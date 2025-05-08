@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.WifiOff
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Snackbar
@@ -30,7 +31,7 @@ import de.example.met_gallery.ui.screens.search.state.ObjectListUiState
 
 @Composable
 fun ErrorScreen(
-    objectListUiState: ObjectListUiState.Error,
+    uiState: ObjectListUiState.Error,
     retryAction: () -> Unit,
     navController: NavController
 ) {
@@ -47,7 +48,7 @@ fun ErrorScreen(
             Box (
                 modifier = Modifier.padding(innerPadding)
             ) {
-                when (objectListUiState.e) {
+                when (uiState.e) {
                     is NoArtworkFoundException ->
                         NoArtworkFoundErrorScreen(
                             snackbarHostState = snackbarHostState
@@ -67,6 +68,7 @@ fun ErrorScreen(
 @Composable
 fun NoArtworkFoundErrorScreen(
     snackbarHostState: SnackbarHostState,
+    modifier: Modifier = Modifier
 ) {
     val snackbarMessage = stringResource(R.string.no_artworks_found_matching_the_search)
     LaunchedEffect(
@@ -75,6 +77,18 @@ fun NoArtworkFoundErrorScreen(
         snackbarHostState.showSnackbar(
             message = snackbarMessage,
             duration = SnackbarDuration.Short,
+        )
+    }
+    Box (
+        modifier = modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            imageVector = Icons.Filled.Close,
+            contentDescription = stringResource(R.string.no_artworks_found_matching_the_search),
+            modifier = Modifier
+                .size(64.dp)
+                .padding(end = 8.dp)
         )
     }
 }

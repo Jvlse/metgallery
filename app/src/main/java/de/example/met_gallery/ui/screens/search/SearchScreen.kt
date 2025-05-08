@@ -1,6 +1,6 @@
 package de.example.met_gallery.ui.screens.search
 
-import android.util.Log
+import android.annotation.SuppressLint
 import androidx.compose.runtime.getValue
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -48,9 +48,10 @@ import coil.request.ImageRequest
 import de.example.met_gallery.R
 import de.example.met_gallery.model.Artwork
 import de.example.met_gallery.fake.FakeArtworkRepository
-import de.example.met_gallery.fake.FakeDataSource
 import de.example.met_gallery.model.ObjectList
 import de.example.met_gallery.navigation.Routes
+import de.example.met_gallery.network.NoArtworkFoundException
+import de.example.met_gallery.network.RequestFailedException
 import de.example.met_gallery.network.SearchArtworksUseCase
 import de.example.met_gallery.ui.screens.common.ErrorScreen
 import de.example.met_gallery.ui.screens.common.LoadingCard
@@ -64,16 +65,17 @@ internal fun SearchScreen(
     navController: NavController,
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(0.dp),
-    retryAction: () -> Unit = { searchViewModel.getArtworks();  },
+    retryAction: () -> Unit = { searchViewModel.getArtworks() },
 ) {
-    val objectListUiState by searchViewModel.objectListUiState.collectAsState()
+    val uiState by searchViewModel
+        .uiState.collectAsState(ObjectListUiState.Loading)
     LaunchedEffect(
-        remember { derivedStateOf { objectListUiState } }
+        remember { derivedStateOf { uiState } }
     ) {
         searchViewModel.getArtworks()
     }
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
-    val text by searchViewModel.search.collectAsState()
+    val search by searchViewModel.search.collectAsState()
     Scaffold (
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
@@ -83,7 +85,7 @@ internal fun SearchScreen(
                     .fillMaxWidth(),
                 inputField = {
                     SearchBarDefaults.InputField(
-                        query = text,
+                        query = search,
                         onQueryChange = {
                             searchViewModel.setSearch(it)
                             searchViewModel.getArtworks()
@@ -101,12 +103,12 @@ internal fun SearchScreen(
             )
         },
     ) { innerPadding ->
-        when (objectListUiState) {
+        when (uiState) {
             is ObjectListUiState.Loading -> LoadingScreen(navController)
             is ObjectListUiState.Success ->
                 ArtworkGrid(
                     searchViewModel = searchViewModel,
-                    objectList = (objectListUiState as ObjectListUiState.Success).objects,
+                    objectList = (uiState as ObjectListUiState.Success).objects,
                     contentPadding = contentPadding,
                     modifier = modifier
                         .fillMaxSize()
@@ -120,7 +122,7 @@ internal fun SearchScreen(
                 )
             is ObjectListUiState.Error -> {
                 ErrorScreen(
-                    objectListUiState = (objectListUiState as ObjectListUiState.Error),
+                    uiState = (uiState as ObjectListUiState.Error),
                     retryAction = retryAction,
                     navController = navController
                 )
@@ -147,11 +149,8 @@ internal fun ArtworkGrid(
         contentPadding = contentPadding,
     ) {
         val artworkList = objectList.artworks
-        Log.d("ARTWORKS", "$artworkList")
         itemsIndexed(artworkList.keys.toList(), key = { index, id -> id }) { index, id ->
             val artwork = artworkList[id]
-            Log.d("ARTWORKS", "$artwork")
-            Log.d("ARTWORKS", "$id, $index")
             Box (
                 modifier = Modifier
                     .height(200.dp)
@@ -159,7 +158,6 @@ internal fun ArtworkGrid(
                     .clip(RoundedCornerShape(16.dp))
             ) {
                 if(artwork != null) {
-                    Log.d("ARTWORKS", "PRINT CARD FOR $artwork")
                     ArtworkCard(
                         artwork = artwork,
                         navController = navController
@@ -181,25 +179,18 @@ internal fun ArtworkGrid(
 fun ArtworkCard(
     artwork: Artwork,
     navController: NavController,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier,
+        shape = MaterialTheme.shapes.large,
+        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
     ) {
-    Box (
-        modifier = Modifier
-            .height(200.dp)
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-    ) {
-        Card(
-            modifier = modifier,
-            shape = MaterialTheme.shapes.large,
-            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+        Surface (
+            modifier = Modifier.fillMaxSize(),
+            onClick = { navController.navigate(Routes.detailsScreen(artwork.id)) },
         ) {
-            Surface (
-                modifier = Modifier.fillMaxSize(),
-                onClick = { navController.navigate(Routes.detailsScreen(artwork.id)) },
-            ) {
-                DisplayArtworkImage(artwork)
-            }
+            DisplayArtworkImage(artwork)
         }
     }
 }
@@ -257,9 +248,10 @@ private fun LoadingSearchScreenPreview() {
     )
 }
 
+@SuppressLint("StateFlowValueCalledInComposition")
 @Preview
 @Composable
-private fun ErrorScreenPreview() {
+private fun NoInternetErrorScreenPreview() {
     val navController = rememberNavController()
     val repository = FakeArtworkRepository()
 
@@ -267,9 +259,31 @@ private fun ErrorScreenPreview() {
         artworkRepository = repository,
         searchArtworks = SearchArtworksUseCase(repository)
     )
+    viewModel.uiState.value = ObjectListUiState.Error(RequestFailedException(""))
+
     SearchScreen(
         searchViewModel = viewModel,
-        // objectListUiState = ObjectListUiState.Error(Exception()),
+        navController = navController,
+        modifier = Modifier,
+        retryAction = { },
+    )
+}
+
+@SuppressLint("StateFlowValueCalledInComposition")
+@Preview
+@Composable
+private fun NoArtworkFoundErrorScreenPreview() {
+    val navController = rememberNavController()
+    val repository = FakeArtworkRepository()
+
+    val viewModel = SearchViewModel(
+        artworkRepository = repository,
+        searchArtworks = SearchArtworksUseCase(repository)
+    )
+    viewModel.uiState.value = ObjectListUiState.Error(NoArtworkFoundException(""))
+
+    SearchScreen(
+        searchViewModel = viewModel,
         navController = navController,
         modifier = Modifier,
         retryAction = { },

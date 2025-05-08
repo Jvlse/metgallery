@@ -28,7 +28,7 @@ class SearchViewModelTest {
 
         assertEquals(
             ObjectListUiState.Success(FakeDataSource.objectList),
-            viewModel.objectListUiState
+            viewModel.uiState
         )
     }
 
