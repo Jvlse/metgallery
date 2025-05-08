@@ -1,10 +1,9 @@
 package de.example.met_gallery.ui.screens.search
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import de.example.met_gallery.fake.FakeDataSource
 import de.example.met_gallery.model.Artwork
 import de.example.met_gallery.model.ObjectList
 import de.example.met_gallery.network.RequestFailedException
@@ -15,6 +14,7 @@ import de.example.met_gallery.ui.screens.search.state.ObjectListUiState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import okio.IOException
 
@@ -23,11 +23,8 @@ internal class SearchViewModel (
     // private val navigator: NavController,
     searchArtworks: SearchArtworksUseCase
 ) : ViewModel() {
-    var objectListUiState: ObjectListUiState by mutableStateOf(ObjectListUiState.Loading)
-        private set
-
-    private val _artworks: MutableStateFlow<Map<Int, Artwork>> = MutableStateFlow(emptyMap())
-    val artworks: StateFlow<Map<Int, Artwork>> = _artworks.asStateFlow()
+    val objectListUiState:
+            MutableStateFlow<ObjectListUiState> = MutableStateFlow(ObjectListUiState.Loading)
 
     private val _search: MutableStateFlow<String> = MutableStateFlow("")
     val search: StateFlow<String> = _search.asStateFlow()
@@ -36,17 +33,19 @@ internal class SearchViewModel (
 
     fun getArtworks() {
         viewModelScope.launch {
-            objectListUiState = ObjectListUiState.Loading
-            objectListUiState = try {
-                ObjectListUiState.Success(
-                    artworkRepository.getArtworks(_search.value)
-                )
-            } catch (e: NoArtworkFoundException) {
-                ObjectListUiState.Error(e)
-            } catch (e: IOException) {
-                ObjectListUiState.Error(e)
-            } catch (e: Exception) {
-                ObjectListUiState.Error(e)
+            objectListUiState.update { ObjectListUiState.Loading }
+            objectListUiState.update {
+                try {
+                    ObjectListUiState.Success(
+                        artworkRepository.getArtworks(_search.value)
+                    )
+                } catch (e: NoArtworkFoundException) {
+                    ObjectListUiState.Error(e)
+                } catch (e: IOException) {
+                    ObjectListUiState.Error(e)
+                } catch (e: Exception) {
+                    ObjectListUiState.Error(e)
+                }
             }
         }
     }
@@ -88,26 +87,35 @@ internal class SearchViewModel (
         // already fetched
         if (getLocalArtworkById(id) != null) return
 
+        var tmp: Artwork = FakeDataSource.artworkOne
+
         viewModelScope.launch {
             val searchResult = artworkRepository.getArtworkById(id)
             searchResult.fold(
                 onSuccess = { artwork ->
                     if(artwork.primaryImage.isNotBlank()
                         || artwork.primaryImageSmall.isNotBlank()) {
-//                        objectListUiState = try {
-//                            val updatedMap = (objectListUiState as ObjectListUiState.Success)
-//                                .objects.artworks.filter {it.key == id}
-//                            updatedMap.plus(Pair(id, artwork))
-//                            ObjectListUiState.Success(
-//                                ObjectList(
-//                                    (objectListUiState as ObjectListUiState.Success).objects.total,
-//                                    updatedMap
-//                                )
-//                            )
-//                    } catch (e: Exception) {
-//                    ObjectListUiState.Error(e)
-//                }
-                        _artworks.value += Pair(artwork.id, artwork)
+                        try {
+                            objectListUiState.update { currentState ->
+                                if (currentState is ObjectListUiState.Success) {
+                                    val currentArtworks =
+                                        currentState.objects.artworks.toMutableMap()
+
+                                    currentArtworks[id] = artwork
+
+                                    ObjectListUiState.Success(
+                                        ObjectList(
+                                            currentState.objects.total,
+                                            currentArtworks.toMap()
+                                        )
+                                    )
+                                } else {
+                                    currentState
+                                }
+                            }
+                        } catch (e: Exception) {
+                            ObjectListUiState.Error(e)
+                        }
                     } else {
                         removeObjectFromList(id)
                     }
@@ -117,8 +125,10 @@ internal class SearchViewModel (
                         removeObjectFromList(id)
                         _errors.value += id
                     }
+                    tmp = FakeDataSource.artworkTwo
                 }
             )
+            Log.d("ARTWORKS", "${Pair(id, tmp)}")
         }
     }
     /*
@@ -143,8 +153,10 @@ internal class SearchViewModel (
      */
 
     fun getLocalArtworkById(id: Int): Artwork? {
-        return _artworks.value.getOrElse(id) { null }
-    // (objectListUiState as ObjectListUiState.Success).objects.artworks.get(id)
+        if(objectListUiState.value is ObjectListUiState.Success) {
+            return (objectListUiState.value as ObjectListUiState.Success).objects.artworks[id]
+        }
+        return null
     }
 
     fun setSearch(search : String) {
@@ -157,14 +169,19 @@ internal class SearchViewModel (
 
     // filter ID out of list so that Card doesn't get rendered in UI
     fun removeObjectFromList(id: Int) {
-        if(objectListUiState is ObjectListUiState.Success) {
-            val objectListSuccess = (objectListUiState as ObjectListUiState.Success)
-            objectListUiState = ObjectListUiState.Success(
-                ObjectList(
-                    objectListSuccess.objects.total,
-                    objectListSuccess.objects.objectIds.filter { it != id }
+        Log.d("ARTWORKS", "REMOVE ID $id")
+        objectListUiState.update { currentState ->
+            if (currentState is ObjectListUiState.Success) {
+                val currentObjects = currentState.objects
+                ObjectListUiState.Success(
+                    ObjectList(
+                        currentObjects.total,
+                        currentObjects.artworks.filter { it.key != id }
+                    )
                 )
-            )
+            } else {
+                currentState
+            }
         }
     }
 

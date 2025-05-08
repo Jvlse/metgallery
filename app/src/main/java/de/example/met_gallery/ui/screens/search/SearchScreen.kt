@@ -1,5 +1,6 @@
 package de.example.met_gallery.ui.screens.search
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -62,10 +63,10 @@ internal fun SearchScreen(
     searchViewModel: SearchViewModel,
     navController: NavController,
     modifier: Modifier = Modifier,
-    objectListUiState: ObjectListUiState = searchViewModel.objectListUiState,
     contentPadding: PaddingValues = PaddingValues(0.dp),
     retryAction: () -> Unit = { searchViewModel.getArtworks();  },
 ) {
+    val objectListUiState by searchViewModel.objectListUiState.collectAsState()
     LaunchedEffect(
         remember { derivedStateOf { objectListUiState } }
     ) {
@@ -105,7 +106,7 @@ internal fun SearchScreen(
             is ObjectListUiState.Success ->
                 ArtworkGrid(
                     searchViewModel = searchViewModel,
-                    objectList = objectListUiState.objects,
+                    objectList = (objectListUiState as ObjectListUiState.Success).objects,
                     contentPadding = contentPadding,
                     modifier = modifier
                         .fillMaxSize()
@@ -119,7 +120,7 @@ internal fun SearchScreen(
                 )
             is ObjectListUiState.Error -> {
                 ErrorScreen(
-                    objectListUiState = objectListUiState,
+                    objectListUiState = (objectListUiState as ObjectListUiState.Error),
                     retryAction = retryAction,
                     navController = navController
                 )
@@ -136,7 +137,6 @@ internal fun ArtworkGrid(
     contentPadding: PaddingValues = PaddingValues(0.dp),
     navController: NavController,
 ) {
-    val artworks by searchViewModel.artworks.collectAsState()
     val gridState = rememberLazyGridState()
 
     LazyVerticalGrid(
@@ -146,9 +146,12 @@ internal fun ArtworkGrid(
         verticalArrangement = Arrangement.spacedBy(8.dp),
         contentPadding = contentPadding,
     ) {
-        val ids = objectList.objectIds
-        itemsIndexed(ids, key = { index, id -> id }) { index, id ->
-            val artwork = artworks[ids[index]]
+        val artworkList = objectList.artworks
+        Log.d("ARTWORKS", "$artworkList")
+        itemsIndexed(artworkList.keys.toList(), key = { index, id -> id }) { index, id ->
+            val artwork = artworkList[id]
+            Log.d("ARTWORKS", "$artwork")
+            Log.d("ARTWORKS", "$id, $index")
             Box (
                 modifier = Modifier
                     .height(200.dp)
@@ -156,6 +159,7 @@ internal fun ArtworkGrid(
                     .clip(RoundedCornerShape(16.dp))
             ) {
                 if(artwork != null) {
+                    Log.d("ARTWORKS", "PRINT CARD FOR $artwork")
                     ArtworkCard(
                         artwork = artwork,
                         navController = navController
@@ -163,10 +167,9 @@ internal fun ArtworkGrid(
                 } else {
                     LoadingCard()
                     LaunchedEffect(
-                        remember { derivedStateOf { gridState } },
-                        remember { artworks }
+                        remember { derivedStateOf { gridState } }
                     ) {
-                        searchViewModel.getArtworkById(ids[index])
+                        searchViewModel.getArtworkById(id)
                     }
                 }
             }
@@ -228,7 +231,7 @@ private fun SearchScreenPreview() {
     )
     SearchScreen(
         searchViewModel = viewModel,
-        objectListUiState = ObjectListUiState.Success(FakeDataSource.objectList),
+        // objectListUiState = ObjectListUiState.Success(FakeDataSource.objectList),
         navController = navController,
         modifier = Modifier,
         retryAction = { },
@@ -247,7 +250,7 @@ private fun LoadingSearchScreenPreview() {
     )
     SearchScreen(
         searchViewModel = viewModel,
-        objectListUiState = ObjectListUiState.Loading,
+        // objectListUiState = ObjectListUiState.Loading,
         navController = navController,
         modifier = Modifier,
         retryAction = { },
@@ -266,7 +269,7 @@ private fun ErrorScreenPreview() {
     )
     SearchScreen(
         searchViewModel = viewModel,
-        objectListUiState = ObjectListUiState.Error(Exception()),
+        // objectListUiState = ObjectListUiState.Error(Exception()),
         navController = navController,
         modifier = Modifier,
         retryAction = { },

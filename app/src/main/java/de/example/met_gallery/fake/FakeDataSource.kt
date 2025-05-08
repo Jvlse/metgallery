@@ -118,7 +118,6 @@ object FakeDataSource {
 
     val objectList = ObjectList(
         total = 3,
-        objectIds = listOf(idOne, idTwo, idThree)
-    //artworks = mapOf(Pair(idOne,artworkOne),Pair(idTwo,artworkTwo),Pair(idThree,artworkNoUrl))
+        artworks = mapOf(Pair(idOne,artworkOne),Pair(idTwo,artworkTwo),Pair(idThree,artworkNoUrl))
     )
 }

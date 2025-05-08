@@ -14,16 +14,6 @@ data class ApiObjectList (
 fun ApiObjectList.toEntity() : ObjectList {
     return ObjectList(
             total = total,
-            objectIds = this@toEntity.objectIds ?: emptyList() //artworks = objectIds.orEmpty().associateWith { null }
+            artworks = objectIds.orEmpty().associateWith { null }
     )
 }
-
-//fun ApiObjectList.toEntityAlt() : ObjectList? {
-//    return when {
-//        objectIds == null -> null
-//        else -> ObjectList(
-//            total = total,
-//            artworks = objectIds.associateWith { null }
-//        )
-//    }
-//}
