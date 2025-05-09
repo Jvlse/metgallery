@@ -7,7 +7,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.WifiOff
-import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.SearchOff
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Snackbar
@@ -84,7 +84,7 @@ fun NoArtworkFoundErrorScreen(
         contentAlignment = Alignment.Center
     ) {
         Icon(
-            imageVector = Icons.Filled.Close,
+            imageVector = Icons.Filled.SearchOff,
             contentDescription = stringResource(R.string.no_artworks_found_matching_the_search),
             modifier = Modifier
                 .size(64.dp)

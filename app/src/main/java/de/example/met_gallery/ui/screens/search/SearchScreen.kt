@@ -89,7 +89,7 @@ internal fun SearchScreen(
                         onQueryChange = {
                             searchViewModel.setSearch(it)
                             searchViewModel.getArtworks()
-                                        },
+                        },
                         onSearch = { searchViewModel.getArtworks() },
                         expanded = false,
                         onExpandedChange = { },

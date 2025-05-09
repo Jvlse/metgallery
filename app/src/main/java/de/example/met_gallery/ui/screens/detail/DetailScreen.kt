@@ -41,6 +41,7 @@ import de.example.met_gallery.model.Artwork
 import androidx.core.net.toUri
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import de.example.met_gallery.R
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -125,6 +126,7 @@ fun DisplayArtworkWithPlaceholder(artwork: Artwork) {
                 }
             ).crossfade(true).build(),
         contentDescription = artwork.title,
+        placeholder = painterResource(R.drawable.loading_img),
         contentScale = ContentScale.Crop,
         modifier = Modifier.fillMaxWidth()
     )
