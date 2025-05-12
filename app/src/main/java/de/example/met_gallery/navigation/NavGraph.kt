@@ -9,7 +9,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import de.example.met_gallery.ui.screens.detail.DetailScreen
 import de.example.met_gallery.ui.screens.search.SearchScreen
-import de.example.met_gallery.ui.screens.search.SearchViewModel
+import de.example.met_gallery.ui.screens.search.state.SearchViewModel
 import org.koin.androidx.compose.koinViewModel
 
 @Composable

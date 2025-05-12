@@ -50,6 +50,7 @@ import de.example.met_gallery.ui.screens.common.ErrorScreen
 import de.example.met_gallery.ui.screens.common.LoadingCard
 import de.example.met_gallery.ui.screens.common.LoadingScreen
 import de.example.met_gallery.ui.screens.search.state.ObjectListState
+import de.example.met_gallery.ui.screens.search.state.SearchViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -59,7 +60,7 @@ internal fun SearchScreen(
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(0.dp),
 ) {
-    val uiState by searchViewModel.uiState2.collectAsState()
+    val uiState by searchViewModel.uiState.collectAsState()
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -70,11 +71,11 @@ internal fun SearchScreen(
                     .fillMaxWidth(),
                 inputField = {
                     SearchBarDefaults.InputField(
-                        query = uiState.query?:"",
+                        query = uiState.query,
                         onQueryChange = {
-                            searchViewModel.setSearch(it)
+                            searchViewModel.search(it)
                         },
-                        onSearch = { searchViewModel.setSearch(it) },
+                        onSearch = { searchViewModel.search(it) },
                         expanded = false,
                         onExpandedChange = { },
                         placeholder = { Text(stringResource(R.string.search_keyword)) },
@@ -88,7 +89,6 @@ internal fun SearchScreen(
         },
     ) { innerPadding ->
         when (uiState.objectListState) {
-            is ObjectListState.Empty -> Text("EMPTY")
             is ObjectListState.Loading -> LoadingScreen(navController)
             is ObjectListState.Success ->
                 ArtworkGrid(
@@ -108,7 +108,7 @@ internal fun SearchScreen(
             is ObjectListState.Error -> {
                 ErrorScreen(
                     uiState = (uiState.objectListState as ObjectListState.Error),
-                    retryAction = { searchViewModel.setSearch(uiState.query?:"") },
+                    retryAction = { searchViewModel.search(uiState.query) },
                     navController = navController
                 )
             }

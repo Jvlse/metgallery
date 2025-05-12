@@ -12,27 +12,29 @@ interface ArtworkDataSource {
 class RequestFailedException(message: String) : Exception(message)
 class NoArtworkFoundException(message: String) : Exception(message)
 
-//sealed interface LoadingEvent{
+// sealed interface LoadingEvent{
 //    Loading,
 //    Success,
 //    Error
-//}
+// }
 
-//TODO Implement LoadingEvent from the template project and do try catch operation on the datasource
+// TODO Implement LoadingEvent from the template project and do try catch operation on the datasource
 
-class ArtworkDataSourceImpl (private val api: ArtworkApi) : ArtworkDataSource {
+class ArtworkDataSourceImpl(private val api: ArtworkApi) : ArtworkDataSource {
+
     override suspend fun getArtworks(query: String): ObjectList {
         val response = api.searchArtworks("\"" + query + "\"")
         val responseBody = response.body()
 
         val artworks =
-            if (response.isSuccessful
-                && responseBody != null
-                && responseBody.objectIds != null) {
-            responseBody.toEntity()
-        } else {
-            throw NoArtworkFoundException("Could not find Artworks matching: $query")
-        }
+            if (response.isSuccessful &&
+                responseBody != null &&
+                responseBody.objectIds != null
+            ) {
+                responseBody.toEntity()
+            } else {
+                throw NoArtworkFoundException("Could not find Artworks matching: $query")
+            }
 
         return artworks
     }

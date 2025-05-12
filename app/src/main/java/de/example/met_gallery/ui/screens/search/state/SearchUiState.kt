@@ -9,10 +9,9 @@ sealed interface ObjectListState {
         val objects: ObjectList,
     ) : ObjectListState
 
-    data object Empty : ObjectListState
     data class Error(
         val e: Exception
     ) : ObjectListState
 }
 
-data class SearchUiState(val query: String?, val objectListState: ObjectListState)
+data class SearchUiState(val query: String, val objectListState: ObjectListState)
