@@ -24,7 +24,7 @@ import de.example.met_gallery.R
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoadingScreen(navController: NavController) {
-    Scaffold (
+    Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
                 title = { Text(stringResource(R.string.details)) },

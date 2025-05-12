@@ -5,7 +5,7 @@ import de.example.met_gallery.fake.FakeDataSource
 import de.example.met_gallery.network.SearchArtworksUseCase
 import de.example.met_gallery.rules.TestDispatcherRule
 import de.example.met_gallery.ui.screens.search.SearchViewModel
-import de.example.met_gallery.ui.screens.search.state.ObjectListUiState
+import de.example.met_gallery.ui.screens.search.state.SearchUiState
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
 import org.junit.Assert.*
@@ -27,7 +27,7 @@ class SearchViewModelTest {
         viewModel.getArtworks()
 
         assertEquals(
-            ObjectListUiState.Success(FakeDataSource.objectList),
+            SearchUiState.Success(FakeDataSource.objectList),
             viewModel.uiState
         )
     }

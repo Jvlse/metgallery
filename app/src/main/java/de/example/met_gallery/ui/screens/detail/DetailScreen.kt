@@ -27,39 +27,35 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
-import de.example.met_gallery.model.Artwork
-import androidx.core.net.toUri
-import androidx.compose.runtime.getValue
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
-import de.example.met_gallery.R
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
+import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import de.example.met_gallery.R
 import de.example.met_gallery.fake.FakeDataSource
+import de.example.met_gallery.model.Artwork
 import de.example.met_gallery.ui.screens.common.LoadingScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DetailScreen(
-    detailViewModel: DetailViewModel,
-    onLeave: () -> Unit = { detailViewModel.leaveDetailScreen() },
+    artwork: Artwork,
     navController: NavController,
 ) {
-    val artwork by detailViewModel.artwork.collectAsState()
-    Scaffold (
+    Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
                 title = { Text(stringResource(R.string.details)) },
@@ -67,7 +63,6 @@ fun DetailScreen(
                     IconButton(
                         onClick = {
                             navController.navigateUp()
-                            onLeave
                         }
                     ) {
                         Icon(
@@ -79,12 +74,12 @@ fun DetailScreen(
             )
         },
     ) { innerPadding ->
-        ArtworkScreen(artwork = artwork!!, modifier = Modifier.padding(innerPadding))
+        DisplayArtworkDetails(artwork = artwork, modifier = Modifier.padding(innerPadding))
     }
 }
 
 @Composable
-fun ArtworkScreen(
+fun DisplayArtworkDetails(
     artwork: Artwork,
     modifier: Modifier = Modifier,
 ) {
@@ -152,7 +147,7 @@ fun ArtworkDetail(artwork: Artwork) {
         val context = LocalContext.current
         if (artwork.objectUrl.isNotBlank()) {
             Spacer(modifier = Modifier.height(8.dp))
-            Column (
+            Column(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
@@ -183,19 +178,19 @@ fun PrintAdditionalImages(artwork: Artwork) {
     ) {
         (artwork.additionalImages + artwork.primaryImage).filter { it.isNotBlank() }
             .forEach { url ->
-            Card(
-                modifier = Modifier
-                    .fillMaxSize(),
-                shape = MaterialTheme.shapes.large,
-                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
-            ) {
-                AsyncImage(
-                    model = url,
-                    contentDescription = stringResource(R.string.more_images_of, artwork.title),
-                    modifier = Modifier.fillMaxSize()
-                )
+                Card(
+                    modifier = Modifier
+                        .fillMaxSize(),
+                    shape = MaterialTheme.shapes.large,
+                    elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+                ) {
+                    AsyncImage(
+                        model = url,
+                        contentDescription = stringResource(R.string.more_images_of, artwork.title),
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
             }
-        }
     }
 }
 
@@ -219,10 +214,8 @@ private fun LoadingDetailScreenPreview() {
 @Composable
 private fun DetailScreenPreview() {
     val navController = rememberNavController()
-    val viewModel = DetailViewModel()
-    viewModel.setArtwork(FakeDataSource.artworkOne)
     DetailScreen(
-        detailViewModel = viewModel,
+        FakeDataSource.artworkOne,
         navController = navController
     )
 }

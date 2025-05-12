@@ -12,6 +12,14 @@ interface ArtworkDataSource {
 class RequestFailedException(message: String) : Exception(message)
 class NoArtworkFoundException(message: String) : Exception(message)
 
+//sealed interface LoadingEvent{
+//    Loading,
+//    Success,
+//    Error
+//}
+
+//TODO Implement LoadingEvent from the template project and do try catch operation on the datasource
+
 class ArtworkDataSourceImpl (private val api: ArtworkApi) : ArtworkDataSource {
     override suspend fun getArtworks(query: String): ObjectList {
         val response = api.searchArtworks("\"" + query + "\"")

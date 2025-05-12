@@ -21,4 +21,3 @@ dependencyResolutionManagement {
 
 rootProject.name = "met-gallery"
 include(":app")
- 

@@ -6,8 +6,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.WifiOff
 import androidx.compose.material.icons.filled.SearchOff
+import androidx.compose.material.icons.filled.WifiOff
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Snackbar
@@ -27,11 +27,12 @@ import androidx.navigation.NavController
 import de.example.met_gallery.R
 import de.example.met_gallery.navigation.Routes
 import de.example.met_gallery.network.NoArtworkFoundException
-import de.example.met_gallery.ui.screens.search.state.ObjectListUiState
+import de.example.met_gallery.ui.screens.search.state.ObjectListState
+import de.example.met_gallery.ui.screens.search.state.SearchUiState
 
 @Composable
 fun ErrorScreen(
-    uiState: ObjectListUiState.Error,
+    uiState: ObjectListState.Error,
     retryAction: () -> Unit,
     navController: NavController
 ) {
@@ -43,9 +44,10 @@ fun ErrorScreen(
                     snackbarData = snackbarData,
                     shape = RoundedCornerShape(16.dp),
                 )
-            } },
+            }
+        },
         content = { innerPadding ->
-            Box (
+            Box(
                 modifier = Modifier.padding(innerPadding)
             ) {
                 when (uiState.e) {
@@ -79,7 +81,7 @@ fun NoArtworkFoundErrorScreen(
             duration = SnackbarDuration.Short,
         )
     }
-    Box (
+    Box(
         modifier = modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
@@ -116,7 +118,7 @@ fun NoInternetErrorScreen(
             navController.navigate(Routes.SEARCH)
         }
     }
-    Box (
+    Box(
         modifier = modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {

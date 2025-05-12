@@ -1,4 +1,4 @@
-package de.af.template.utils.loading
+package de.example.met_gallery.utils.loading
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.transformWhile
